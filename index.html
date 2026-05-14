@@ -6,322 +6,296 @@
 <title>Meus Exames</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap');
-:root {
-  --bg:#F4F6F9; --card:#FFFFFF; --primary:#1A6B4A; --primary-light:#E6F4ED;
-  --text:#18202E; --gray:#6B7585; --border:#E4E8EF;
-  --ok:#16A34A; --ok-bg:#DCFCE7; --warn:#D97706; --warn-bg:#FEF3C7;
-  --bad:#DC2626; --bad-bg:#FEE2E2; --shadow:0 1px 3px rgba(0,0,0,.05),0 4px 12px rgba(0,0,0,.04);
-  --radius:14px;
-}
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
-.header{background:var(--card);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 8px rgba(0,0,0,.04);}
-.logo{display:flex;align-items:center;gap:10px;}
-.logo-icon{width:36px;height:36px;background:var(--primary);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;}
-.logo-text{font-weight:700;font-size:1.05rem;}
-.logo-sub{font-size:.7rem;color:var(--gray);}
-.btn-upload{background:var(--primary);color:#fff;border:none;border-radius:9px;padding:9px 18px;font-weight:600;font-size:.85rem;cursor:pointer;font-family:inherit;transition:opacity .2s;}
-.btn-upload:hover{opacity:.85;}
-.main{max-width:980px;margin:0 auto;padding:24px 16px;}
-.upload-area{border:2px dashed var(--border);border-radius:var(--radius);background:var(--card);padding:56px 24px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:24px;}
-.upload-area:hover,.upload-area.drag{border-color:var(--primary);background:var(--primary-light);}
-.upload-icon{font-size:3rem;margin-bottom:14px;}
-.upload-title{font-weight:700;font-size:1.15rem;margin-bottom:6px;}
-.upload-sub{color:var(--gray);font-size:.87rem;line-height:1.5;}
-.btn-escolher{display:inline-block;margin-top:20px;background:var(--primary);color:#fff;padding:11px 28px;border-radius:9px;font-weight:600;font-size:.9rem;cursor:pointer;}
-#file-input{display:none;}
-.loading{text-align:center;padding:60px 20px;}
-.spinner{width:44px;height:44px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px;}
-@keyframes spin{to{transform:rotate(360deg);}}
-.loading-text{font-weight:600;font-size:1rem;margin-bottom:6px;}
-.loading-sub{color:var(--gray);font-size:.85rem;}
-.hist-bar{display:flex;align-items:center;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
-.hist-label{font-size:.72rem;font-weight:700;color:var(--gray);letter-spacing:.5px;}
-.hist-chip{padding:5px 13px;border-radius:99px;border:1.5px solid var(--border);background:var(--card);font-size:.78rem;font-weight:600;cursor:pointer;transition:all .15s;font-family:'DM Mono',monospace;}
-.hist-chip.active{background:var(--primary);color:#fff;border-color:var(--primary);}
-.hist-chip:hover:not(.active){border-color:var(--primary);color:var(--primary);}
-.hist-chip.danger{color:#DC2626;border-color:#FECACA;}
-.hist-chip.danger:hover{background:#FEE2E2;}
-.score-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 22px;margin-bottom:22px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
-.score-circle{width:70px;height:70px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;font-size:1.35rem;flex-shrink:0;}
-.score-circle small{font-size:.58rem;font-weight:500;}
-.score-title{font-weight:700;font-size:.95rem;margin-bottom:6px;}
-.score-pills{display:flex;gap:7px;flex-wrap:wrap;}
-.pill{padding:3px 10px;border-radius:99px;font-size:.74rem;font-weight:700;}
-.pill-ok{background:var(--ok-bg);color:var(--ok);}
-.pill-warn{background:var(--warn-bg);color:var(--warn);}
-.pill-bad{background:var(--bad-bg);color:var(--bad);}
-.pill-neu{background:#F1F5F9;color:#475569;}
-.section{margin-bottom:26px;}
-.section-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;cursor:pointer;user-select:none;padding:4px 2px;}
-.section-icon{font-size:1.2rem;}
-.section-title{font-weight:700;font-size:.92rem;flex:1;}
-.section-badge{font-size:.7rem;font-weight:700;padding:2px 9px;border-radius:99px;}
-.section-arrow{color:var(--gray);font-size:.85rem;transition:transform .2s;}
-.section-arrow.fechado{transform:rotate(-90deg);}
-.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;}
-@media(max-width:520px){.cards-grid{grid-template-columns:1fr 1fr;}}
-.exam-card{background:var(--card);border-radius:12px;border:1.5px solid var(--border);padding:12px 13px;position:relative;box-shadow:var(--shadow);transition:transform .15s;}
-.exam-card:hover{transform:translateY(-1px);}
-.exam-card.ok{border-color:#BBF7D0;background:#F0FDF4;}
-.exam-card.warn{border-color:#FDE68A;background:#FFFBEB;}
-.exam-card.bad{border-color:#FECACA;background:#FFF5F5;}
-.exam-name{font-size:.73rem;font-weight:700;color:var(--gray);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:52px;}
-.exam-value{font-size:1.45rem;font-weight:800;line-height:1.1;margin-bottom:1px;}
-.exam-unit{font-size:.65rem;font-weight:400;color:var(--gray);margin-left:2px;}
-.exam-ref{font-size:.65rem;color:var(--gray);margin-bottom:5px;}
-.exam-status{font-size:.62rem;font-weight:700;padding:2px 6px;border-radius:99px;position:absolute;top:10px;right:10px;}
-.bar-wrap{height:5px;border-radius:99px;background:linear-gradient(90deg,#22C55E 0%,#22C55E 38%,#F59E0B 58%,#EF4444 100%);position:relative;margin:3px 0 5px;}
-.bar-marker{width:11px;height:11px;border-radius:50%;position:absolute;top:50%;transform:translate(-50%,-50%);border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.25);}
-.mini-chart-wrap{height:75px;margin-top:7px;}
-.empty{text-align:center;padding:70px 20px;color:var(--gray);}
-.empty-icon{font-size:3rem;margin-bottom:12px;}
-.empty-title{font-weight:700;font-size:1.1rem;color:var(--text);margin-bottom:6px;}
-.toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:#fff;padding:11px 18px;border-radius:10px;font-size:.85rem;font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,.25);z-index:9999;animation:slideUp .25s ease;max-width:320px;}
-@keyframes slideUp{from{transform:translateY(16px);opacity:0;}to{transform:translateY(0);opacity:1;}}
-.erro-box{background:#FFF5F5;border:1.5px solid #FECACA;border-radius:var(--radius);padding:20px 22px;margin-bottom:20px;display:none;}
-.erro-titulo{font-weight:700;color:#DC2626;margin-bottom:6px;}
-.erro-msg{font-size:.85rem;color:#7F1D1D;line-height:1.6;white-space:pre-wrap;}
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap');
+:root{--bg:#F4F6F9;--card:#fff;--primary:#1A6B4A;--pl:#E6F4ED;--text:#18202E;--gray:#6B7585;--border:#E4E8EF;--ok:#16A34A;--okbg:#DCFCE7;--warn:#D97706;--warnbg:#FEF3C7;--bad:#DC2626;--badbg:#FEE2E2;--sh:0 1px 3px rgba(0,0,0,.05),0 4px 12px rgba(0,0,0,.04);--r:14px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.hdr{background:var(--card);border-bottom:1px solid var(--border);padding:13px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 8px rgba(0,0,0,.04)}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-ic{width:36px;height:36px;background:var(--primary);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem}
+.logo-t{font-weight:700;font-size:1.05rem}
+.logo-s{font-size:.7rem;color:var(--gray)}
+.btn-up{background:var(--primary);color:#fff;border:none;border-radius:9px;padding:9px 18px;font-weight:600;font-size:.85rem;cursor:pointer;font-family:inherit}
+.btn-up:hover{opacity:.85}
+.main{max-width:980px;margin:0 auto;padding:24px 16px}
+.drop{border:2px dashed var(--border);border-radius:var(--r);background:var(--card);padding:52px 24px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:24px}
+.drop:hover,.drop.drag{border-color:var(--primary);background:var(--pl)}
+.drop-ic{font-size:2.8rem;margin-bottom:12px}
+.drop-t{font-weight:700;font-size:1.1rem;margin-bottom:6px}
+.drop-s{color:var(--gray);font-size:.87rem}
+.btn-esc{display:inline-block;margin-top:18px;background:var(--primary);color:#fff;padding:10px 26px;border-radius:9px;font-weight:600;font-size:.9rem;cursor:pointer}
+#fi{display:none}
+.load{text-align:center;padding:56px 20px}
+.spin{width:42px;height:42px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:sp .8s linear infinite;margin:0 auto 14px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.load-t{font-weight:600;margin-bottom:5px}
+.load-s{color:var(--gray);font-size:.85rem}
+.hb{display:flex;align-items:center;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+.hl{font-size:.72rem;font-weight:700;color:var(--gray);letter-spacing:.5px}
+.hc{padding:5px 12px;border-radius:99px;border:1.5px solid var(--border);background:var(--card);font-size:.78rem;font-weight:600;cursor:pointer;transition:all .15s;font-family:'DM Mono',monospace}
+.hc.on{background:var(--primary);color:#fff;border-color:var(--primary)}
+.hc:hover:not(.on){border-color:var(--primary);color:var(--primary)}
+.hc.del{color:#DC2626;border-color:#FECACA}
+.hc.del:hover{background:#FEE2E2}
+.sc{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:18px 22px;margin-bottom:20px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.sc-ci{width:68px;height:68px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;font-size:1.3rem;flex-shrink:0}
+.sc-ci small{font-size:.56rem;font-weight:500}
+.sc-t{font-weight:700;font-size:.95rem;margin-bottom:5px}
+.pills{display:flex;gap:7px;flex-wrap:wrap}
+.pill{padding:3px 10px;border-radius:99px;font-size:.74rem;font-weight:700}
+.p-ok{background:var(--okbg);color:var(--ok)}
+.p-w{background:var(--warnbg);color:var(--warn)}
+.p-b{background:var(--badbg);color:var(--bad)}
+.p-n{background:#F1F5F9;color:#475569}
+.sec{margin-bottom:24px}
+.sec-h{display:flex;align-items:center;gap:10px;margin-bottom:10px;cursor:pointer;user-select:none;padding:3px 0}
+.sec-ic{font-size:1.2rem}
+.sec-t{font-weight:700;font-size:.92rem;flex:1}
+.sec-b{font-size:.7rem;font-weight:700;padding:2px 9px;border-radius:99px}
+.sec-ar{color:var(--gray);font-size:.82rem;transition:transform .2s}
+.sec-ar.cl{transform:rotate(-90deg)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:10px}
+@media(max-width:500px){.grid{grid-template-columns:1fr 1fr}}
+.card{background:var(--card);border-radius:12px;border:1.5px solid var(--border);padding:12px 13px;position:relative;box-shadow:var(--sh);transition:transform .15s}
+.card:hover{transform:translateY(-1px)}
+.card.ok{border-color:#BBF7D0;background:#F0FDF4}
+.card.warn{border-color:#FDE68A;background:#FFFBEB}
+.card.bad{border-color:#FECACA;background:#FFF5F5}
+.cn{font-size:.72rem;font-weight:700;color:var(--gray);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:54px}
+.cv{font-size:1.42rem;font-weight:800;line-height:1.1;margin-bottom:1px}
+.cu{font-size:.64rem;font-weight:400;color:var(--gray);margin-left:2px}
+.cr{font-size:.64rem;color:var(--gray);margin-bottom:5px}
+.cs{font-size:.61rem;font-weight:700;padding:2px 6px;border-radius:99px;position:absolute;top:10px;right:10px}
+.bar{height:5px;border-radius:99px;background:linear-gradient(90deg,#22C55E 0%,#22C55E 38%,#F59E0B 58%,#EF4444 100%);position:relative;margin:3px 0 5px}
+.bm{width:11px;height:11px;border-radius:50%;position:absolute;top:50%;transform:translate(-50%,-50%);border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.22)}
+.mc{height:74px;margin-top:7px}
+.empty{text-align:center;padding:60px 20px;color:var(--gray)}
+.empty-ic{font-size:2.8rem;margin-bottom:10px}
+.empty-t{font-weight:700;font-size:1.05rem;color:var(--text);margin-bottom:5px}
+.err{background:#FFF5F5;border:1.5px solid #FECACA;border-radius:var(--r);padding:18px 20px;margin-bottom:18px;display:none}
+.err-t{font-weight:700;color:#DC2626;margin-bottom:5px}
+.err-m{font-size:.84rem;color:#7F1D1D;line-height:1.6;white-space:pre-wrap}
+.toast{position:fixed;bottom:22px;right:22px;background:var(--text);color:#fff;padding:10px 16px;border-radius:10px;font-size:.84rem;font-weight:600;box-shadow:0 4px 18px rgba(0,0,0,.22);z-index:9999;animation:su .22s ease;max-width:300px}
+@keyframes su{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
 </style>
 </head>
 <body>
-<div class="header">
+<div class="hdr">
   <div class="logo">
-    <div class="logo-icon">🩺</div>
-    <div>
-      <div class="logo-text">Meus Exames</div>
-      <div class="logo-sub">Leitura inteligente de laudos</div>
-    </div>
+    <div class="logo-ic">🩺</div>
+    <div><div class="logo-t">Meus Exames</div><div class="logo-s">Leitura inteligente de laudos</div></div>
   </div>
-  <label class="btn-upload" for="file-input">📄 Carregar PDF</label>
+  <label class="btn-up" for="fi">📄 Carregar PDF</label>
 </div>
 <div class="main">
-  <div class="upload-area" id="drop-area" onclick="document.getElementById('file-input').click()">
-    <div class="upload-icon">🔬</div>
-    <div class="upload-title">Suba seu laudo em PDF</div>
-    <div class="upload-sub">A IA lê o arquivo e extrai todos os exames automaticamente<br>com valores de referência e status</div>
-    <div class="btn-escolher">Escolher PDF</div>
+  <div class="drop" id="drop" onclick="document.getElementById('fi').click()">
+    <div class="drop-ic">🔬</div>
+    <div class="drop-t">Suba seu laudo em PDF</div>
+    <div class="drop-s">A IA lê o arquivo e extrai todos os exames automaticamente</div>
+    <div class="btn-esc">Escolher PDF</div>
   </div>
-  <input type="file" id="file-input" accept=".pdf,application/pdf">
-  <div class="erro-box" id="erro-box">
-    <div class="erro-titulo">Erro ao processar</div>
-    <div class="erro-msg" id="erro-msg"></div>
+  <input type="file" id="fi" accept=".pdf,application/pdf">
+  <div class="err" id="err"><div class="err-t">Erro ao processar</div><div class="err-m" id="err-m"></div></div>
+  <div class="load" id="load" style="display:none">
+    <div class="spin"></div>
+    <div class="load-t">Analisando com IA...</div>
+    <div class="load-s">Extraindo exames, valores e referências do laudo</div>
   </div>
-  <div class="loading" id="loading" style="display:none">
-    <div class="spinner"></div>
-    <div class="loading-text">Analisando o laudo com IA...</div>
-    <div class="loading-sub">Extraindo exames, valores e referências</div>
+  <div id="res" style="display:none">
+    <div class="hb" id="hb"></div>
+    <div class="sc" id="sc"></div>
+    <div id="sis"></div>
   </div>
-  <div id="resultados" style="display:none">
-    <div class="hist-bar" id="hist-bar"></div>
-    <div class="score-card" id="score-card"></div>
-    <div id="sistemas"></div>
-  </div>
-  <div class="empty" id="empty-state">
-    <div class="empty-icon">📋</div>
-    <div class="empty-title">Nenhum exame carregado</div>
+  <div class="empty" id="emp">
+    <div class="empty-ic">📋</div>
+    <div class="empty-t">Nenhum exame carregado</div>
     <div>Suba um PDF de laudo laboratorial para começar</div>
   </div>
 </div>
 <script>
-var historico=[];
-try{historico=JSON.parse(localStorage.getItem('_exames_v2')||'[]');}catch(e){}
-var dataAtiva=null;
-var SISTEMAS=[
-  {id:'sangue',label:'Sangue',icon:'🩸'},
-  {id:'coracao',label:'Coração e Vasos',icon:'❤️'},
-  {id:'metabol',label:'Metabolismo',icon:'⚡'},
-  {id:'renal',label:'Rins',icon:'💧'},
-  {id:'hepatico',label:'Fígado',icon:'🟤'},
-  {id:'hormonal',label:'Hormônios',icon:'🔬'},
-  {id:'vitaminas',label:'Vitaminas e Ferro',icon:'✨'},
-  {id:'urina',label:'Urina',icon:'🧪'},
-  {id:'outros',label:'Outros',icon:'📋'},
+var H=[];try{H=JSON.parse(localStorage.getItem('_ex3')||'[]');}catch(e){}
+var DA=null;
+var SYS=[
+  {id:'sangue',l:'Sangue',ic:'🩸'},
+  {id:'coracao',l:'Coração e Vasos',ic:'❤️'},
+  {id:'metabol',l:'Metabolismo',ic:'⚡'},
+  {id:'renal',l:'Rins',ic:'💧'},
+  {id:'hepatico',l:'Fígado',ic:'🟤'},
+  {id:'hormonal',l:'Hormônios',ic:'🔬'},
+  {id:'vitaminas',l:'Vitaminas e Ferro',ic:'✨'},
+  {id:'urina',l:'Urina',ic:'🧪'},
+  {id:'outros',l:'Outros',ic:'📋'}
 ];
-var dropArea=document.getElementById('drop-area');
-dropArea.addEventListener('dragover',function(e){e.preventDefault();dropArea.classList.add('drag');});
-dropArea.addEventListener('dragleave',function(){dropArea.classList.remove('drag');});
-dropArea.addEventListener('drop',function(e){e.preventDefault();dropArea.classList.remove('drag');var f=e.dataTransfer.files[0];if(f)processarPDF(f);});
-document.getElementById('file-input').addEventListener('change',function(){if(this.files[0])processarPDF(this.files[0]);this.value='';});
+var drop=document.getElementById('drop');
+drop.addEventListener('dragover',function(e){e.preventDefault();drop.classList.add('drag');});
+drop.addEventListener('dragleave',function(){drop.classList.remove('drag');});
+drop.addEventListener('drop',function(e){e.preventDefault();drop.classList.remove('drag');var f=e.dataTransfer.files[0];if(f)go(f);});
+document.getElementById('fi').addEventListener('change',function(){if(this.files[0])go(this.files[0]);this.value='';});
 
-function processarPDF(file){
-  esconderErro();
-  document.getElementById('loading').style.display='block';
-  document.getElementById('empty-state').style.display='none';
-  document.getElementById('resultados').style.display='none';
-  dropArea.style.display='none';
-  var reader=new FileReader();
-  reader.onload=function(e){
-    var base64=e.target.result.split(',')[1];
-    chamarAPI(base64,file.name);
-  };
-  reader.readAsDataURL(file);
+function go(file){
+  hideErr();
+  document.getElementById('load').style.display='block';
+  document.getElementById('emp').style.display='none';
+  document.getElementById('res').style.display='none';
+  drop.style.display='none';
+  var r=new FileReader();
+  r.onload=function(e){api(e.target.result.split(',')[1],file.name);};
+  r.readAsDataURL(file);
 }
 
-function chamarAPI(base64,nomeArq){
-  var prompt='Analise este PDF de laudo laboratorial e extraia TODOS os exames.\n\nPara cada exame retorne:\n- nome: nome do exame em português\n- valor: número\n- unidade: unidade de medida\n- min: valor mínimo de referência (número ou null)\n- max: valor máximo de referência (número ou null)\n- sistema: sangue, coracao, metabol, renal, hepatico, hormonal, vitaminas, urina, ou outros\n\nRetorne APENAS JSON válido, sem texto extra:\n{\n  "data": "DD/MM/AAAA ou null",\n  "exames": [\n    {"nome":"Hemoglobina","valor":16.5,"unidade":"g/dL","min":12,"max":16,"sistema":"sangue"}\n  ]\n}\n\nExtraia TODOS os exames sem exceção.';
-
+function api(b64,nome){
   fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
       model:'claude-sonnet-4-20250514',
       max_tokens:4000,
-      messages:[{
-        role:'user',
-        content:[
-          {type:'document',source:{type:'base64',media_type:'application/pdf',data:base64}},
-          {type:'text',text:prompt}
-        ]
-      }]
+      messages:[{role:'user',content:[
+        {type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}},
+        {type:'text',text:'Analise este laudo laboratorial. Extraia TODOS os exames.\n\nRetorne APENAS JSON (sem texto extra):\n{\n  "data": "DD/MM/AAAA",\n  "exames": [\n    {"nome":"Hemoglobina","valor":16.6,"unidade":"g/dL","min":13,"max":18.6,"sistema":"sangue"},\n    {"nome":"Leucócitos","valor":10240,"unidade":"/mm³","min":4500,"max":10000,"sistema":"sangue"}\n  ]\n}\n\nSistemas possíveis: sangue, coracao, metabol, renal, hepatico, hormonal, vitaminas, urina, outros.\nPara exames sem referência numérica clara, use min:null e max:null.\nExtraia TODOS os exames sem exceção.'}
+      ]}]
     })
   })
   .then(function(r){return r.json();})
   .then(function(data){
-    document.getElementById('loading').style.display='none';
-    if(data.error){mostrarErro('Erro da API: '+(data.error.message||JSON.stringify(data.error)));dropArea.style.display='block';return;}
-    var texto=(data.content&&data.content[0])?data.content[0].text||'':'';
-    var jsonStr=texto;
-    var m=texto.match(/```(?:json)?\s*([\s\S]*?)```/);
-    if(m)jsonStr=m[1];
-    var idxJ=jsonStr.indexOf('{');
-    if(idxJ>0)jsonStr=jsonStr.slice(idxJ);
-    var resultado;
-    try{resultado=JSON.parse(jsonStr);}
-    catch(e){mostrarErro('Não foi possível interpretar a resposta.\n'+e.message+'\n\nResposta recebida:\n'+texto.slice(0,300));dropArea.style.display='block';return;}
-    if(!resultado.exames||!resultado.exames.length){mostrarErro('Nenhum exame encontrado. Verifique se é um laudo laboratorial válido.');dropArea.style.display='block';return;}
-    var d=resultado.data||new Date().toLocaleDateString('pt-BR');
+    document.getElementById('load').style.display='none';
+    if(data.error){showErr('Erro da API: '+(data.error.message||JSON.stringify(data.error)));drop.style.display='block';return;}
+    var txt=(data.content&&data.content[0])?data.content[0].text||'':'';
+    var js=txt;
+    var m=txt.match(/```(?:json)?\s*([\s\S]*?)```/);if(m)js=m[1];
+    var i=js.indexOf('{');if(i>0)js=js.slice(i);
+    var obj;
+    try{obj=JSON.parse(js);}
+    catch(e){showErr('Erro ao interpretar resposta.\n'+e.message+'\n\nResposta:\n'+txt.slice(0,400));drop.style.display='block';return;}
+    if(!obj.exames||!obj.exames.length){showErr('Nenhum exame encontrado. Verifique se é um laudo laboratorial.');drop.style.display='block';return;}
+    var d=obj.data||new Date().toLocaleDateString('pt-BR');
     d=d.replace(/(\d{4})-(\d{2})-(\d{2})/,'$3/$2/$1');
-    var idx=historico.findIndex(function(h){return h.data===d;});
-    if(idx>=0){historico[idx].exames=resultado.exames;}
-    else{historico.push({data:d,nomeArq:nomeArq,exames:resultado.exames});historico.sort(function(a,b){return dataTs(a.data)-dataTs(b.data);});}
-    try{localStorage.setItem('_exames_v2',JSON.stringify(historico));}catch(e){}
-    dataAtiva=d;
-    mostrarToast('✅ '+resultado.exames.length+' exames carregados!');
-    dropArea.style.display='none';
-    renderizar();
+    var idx=H.findIndex(function(h){return h.data===d;});
+    if(idx>=0)H[idx].exames=obj.exames;
+    else{H.push({data:d,nome:nome,exames:obj.exames});H.sort(function(a,b){return dts(a.data)-dts(b.data);});}
+    try{localStorage.setItem('_ex3',JSON.stringify(H));}catch(e){}
+    DA=d;
+    toast('✅ '+obj.exames.length+' exames carregados!');
+    render();
   })
-  .catch(function(err){
-    document.getElementById('loading').style.display='none';
-    dropArea.style.display='block';
-    mostrarErro('Falha na conexão: '+err.message);
+  .catch(function(e){
+    document.getElementById('load').style.display='none';
+    drop.style.display='block';
+    showErr('Falha na conexão: '+e.message+'\n\nVerifique se o arquivo está hospedado em servidor (não funciona ao abrir como arquivo local devido a restrições de CORS).');
   });
 }
 
-function renderizar(){
-  if(!historico.length){document.getElementById('resultados').style.display='none';document.getElementById('empty-state').style.display='block';dropArea.style.display='block';return;}
-  document.getElementById('empty-state').style.display='none';
-  document.getElementById('resultados').style.display='block';
-  if(!dataAtiva)dataAtiva=historico[historico.length-1].data;
-  renderHistBar();renderScore();renderSistemas();
+function render(){
+  if(!H.length){document.getElementById('res').style.display='none';document.getElementById('emp').style.display='block';drop.style.display='block';return;}
+  document.getElementById('emp').style.display='none';
+  document.getElementById('res').style.display='block';
+  if(!DA)DA=H[H.length-1].data;
+  renderHB();renderSC();renderSIS();
 }
 
-function renderHistBar(){
-  var bar=document.getElementById('hist-bar');
-  bar.innerHTML='<span class="hist-label">DATAS:</span>';
-  historico.forEach(function(h){
-    var chip=document.createElement('span');
-    chip.className='hist-chip'+(h.data===dataAtiva?' active':'');
-    chip.textContent=h.data;chip.title=h.nomeArq||'';
-    chip.onclick=function(){dataAtiva=h.data;renderizar();};
-    bar.appendChild(chip);
+function renderHB(){
+  var b=document.getElementById('hb');
+  b.innerHTML='<span class="hl">DATAS:</span>';
+  H.forEach(function(h){
+    var c=document.createElement('span');
+    c.className='hc'+(h.data===DA?' on':'');
+    c.textContent=h.data;c.title=h.nome||'';
+    c.onclick=function(){DA=h.data;render();};
+    b.appendChild(c);
   });
-  var btn=document.createElement('span');
-  btn.className='hist-chip danger';btn.style.marginLeft='auto';btn.textContent='🗑 Limpar';
-  btn.onclick=function(){
+  var d=document.createElement('span');
+  d.className='hc del';d.style.marginLeft='auto';d.textContent='🗑 Limpar';
+  d.onclick=function(){
     if(!confirm('Apagar todo o histórico?'))return;
-    historico=[];dataAtiva=null;
-    try{localStorage.removeItem('_exames_v2');}catch(e){}
-    document.getElementById('resultados').style.display='none';
-    document.getElementById('empty-state').style.display='block';
-    dropArea.style.display='block';
+    H=[];DA=null;try{localStorage.removeItem('_ex3');}catch(e){}
+    document.getElementById('res').style.display='none';
+    document.getElementById('emp').style.display='block';
+    drop.style.display='block';
   };
-  bar.appendChild(btn);
+  b.appendChild(d);
 }
 
-function renderScore(){
-  var entrada=historico.find(function(h){return h.data===dataAtiva;});
-  if(!entrada)return;
-  var total=0,ok=0,warn=0,bad=0;
-  entrada.exames.forEach(function(e){
-    if(!temRef(e))return;total++;
-    var s=calcSt(e.valor,e.min,e.max);
-    if(s==='ok')ok++;else if(s==='warn')warn++;else bad++;
+function renderSC(){
+  var en=H.find(function(h){return h.data===DA;});if(!en)return;
+  var total=0,ok=0,w=0,bad=0;
+  en.exames.forEach(function(e){
+    if(!tr(e))return;total++;
+    var s=st(e.valor,e.min,e.max);
+    if(s==='ok')ok++;else if(s==='warn')w++;else bad++;
   });
   var pct=total>0?Math.round(ok/total*100):0;
   var cor=pct>=80?'#16A34A':pct>=60?'#D97706':'#DC2626';
   var bg=pct>=80?'#DCFCE7':pct>=60?'#FEF3C7':'#FEE2E2';
-  document.getElementById('score-card').innerHTML=
-    '<div class="score-circle" style="background:'+bg+';color:'+cor+'">'+pct+'<small>%</small></div>'+
-    '<div><div class="score-title">Resultado geral — '+dataAtiva+'</div>'+
-    '<div class="score-pills">'+
-    (ok?'<span class="pill pill-ok">✅ '+ok+' normais</span>':'')+
-    (warn?'<span class="pill pill-warn">⚠️ '+warn+' atenção</span>':'')+
-    (bad?'<span class="pill pill-bad">🔴 '+bad+' alterados</span>':'')+
-    '<span class="pill pill-neu">'+entrada.exames.length+' exames</span>'+
+  document.getElementById('sc').innerHTML=
+    '<div class="sc-ci" style="background:'+bg+';color:'+cor+'">'+pct+'<small>%</small></div>'+
+    '<div><div class="sc-t">Resultado geral — '+DA+'</div>'+
+    '<div class="pills">'+
+    (ok?'<span class="pill p-ok">✅ '+ok+' normais</span>':'')+
+    (w?'<span class="pill p-w">⚠️ '+w+' atenção</span>':'')+
+    (bad?'<span class="pill p-b">🔴 '+bad+' alterados</span>':'')+
+    '<span class="pill p-n">'+en.exames.length+' exames</span>'+
     '</div></div>';
 }
 
-function renderSistemas(){
-  var entrada=historico.find(function(h){return h.data===dataAtiva;});
-  if(!entrada)return;
-  var wrap=document.getElementById('sistemas');wrap.innerHTML='';
-  var grupos={};
-  entrada.exames.forEach(function(e){var s=e.sistema||'outros';if(!grupos[s])grupos[s]=[];grupos[s].push(e);});
-  SISTEMAS.forEach(function(sys){
-    var items=grupos[sys.id]||[];if(!items.length)return;
-    var nBad=items.filter(function(e){return temRef(e)&&calcSt(e.valor,e.min,e.max)==='bad';}).length;
-    var nWarn=items.filter(function(e){return temRef(e)&&calcSt(e.valor,e.min,e.max)==='warn';}).length;
-    var bCor=nBad?'#DC2626':nWarn?'#D97706':'#16A34A';
-    var bBg=nBad?'#FEE2E2':nWarn?'#FEF3C7':'#DCFCE7';
-    var bLabel=nBad?nBad+' alterado'+(nBad>1?'s':''):nWarn?nWarn+' atenção':'Normal';
-    var sec=document.createElement('div');sec.className='section';
-    var hdr=document.createElement('div');hdr.className='section-header';
-    var arrow=document.createElement('span');arrow.className='section-arrow';arrow.textContent='▾';
-    hdr.innerHTML='<span class="section-icon">'+sys.icon+'</span><span class="section-title">'+sys.label+'</span><span class="section-badge" style="background:'+bBg+';color:'+bCor+'">'+bLabel+'</span>';
-    hdr.appendChild(arrow);
-    var grid=document.createElement('div');grid.className='cards-grid';
-    var aberto=true;
-    hdr.onclick=function(){aberto=!aberto;grid.style.display=aberto?'grid':'none';arrow.className='section-arrow'+(aberto?'':' fechado');};
+function renderSIS(){
+  var en=H.find(function(h){return h.data===DA;});if(!en)return;
+  var w=document.getElementById('sis');w.innerHTML='';
+  var g={};en.exames.forEach(function(e){var s=e.sistema||'outros';if(!g[s])g[s]=[];g[s].push(e);});
+  SYS.forEach(function(sys){
+    var items=g[sys.id]||[];if(!items.length)return;
+    var nb=items.filter(function(e){return tr(e)&&st(e.valor,e.min,e.max)==='bad';}).length;
+    var nw=items.filter(function(e){return tr(e)&&st(e.valor,e.min,e.max)==='warn';}).length;
+    var bc=nb?'#DC2626':nw?'#D97706':'#16A34A';
+    var bb=nb?'#FEE2E2':nw?'#FEF3C7':'#DCFCE7';
+    var bl=nb?nb+' alterado'+(nb>1?'s':''):nw?nw+' atenção':'Normal';
+    var sec=document.createElement('div');sec.className='sec';
+    var h=document.createElement('div');h.className='sec-h';
+    var ar=document.createElement('span');ar.className='sec-ar';ar.textContent='▾';
+    h.innerHTML='<span class="sec-ic">'+sys.ic+'</span><span class="sec-t">'+sys.l+'</span><span class="sec-b" style="background:'+bb+';color:'+bc+'">'+bl+'</span>';
+    h.appendChild(ar);
+    var grid=document.createElement('div');grid.className='grid';
+    var op=true;
+    h.onclick=function(){op=!op;grid.style.display=op?'grid':'none';ar.className='sec-ar'+(op?'':' cl');};
     items.forEach(function(e){
-      var s=temRef(e)?calcSt(e.valor,e.min,e.max):'neutro';
-      var pos=temRef(e)?calcPos(e.valor,e.min,e.max):50;
+      var s=tr(e)?st(e.valor,e.min,e.max):'neutro';
+      var pos=tr(e)?pos_calc(e.valor,e.min,e.max):50;
       var cor=s==='ok'?'#16A34A':s==='warn'?'#D97706':s==='bad'?'#DC2626':'#94A3B8';
-      var sLabel=s==='ok'?'Normal':s==='warn'?'Atenção':s==='bad'?'Alterado':'';
-      var sBg=s==='ok'?'var(--ok-bg)':s==='warn'?'var(--warn-bg)':s==='bad'?'var(--bad-bg)':'var(--border)';
-      var cid='ch_'+sys.id+'_'+e.nome.replace(/[^a-zA-Z0-9]/g,'_');
-      var hist=historico.map(function(h){var x=h.exames.find(function(ex){return ex.nome===e.nome;});return x?{data:h.data,valor:x.valor}:null;}).filter(Boolean);
-      var card=document.createElement('div');card.className='exam-card '+s;
+      var sl=s==='ok'?'Normal':s==='warn'?'Atenção':s==='bad'?'Alterado':'';
+      var sb=s==='ok'?'var(--okbg)':s==='warn'?'var(--warnbg)':s==='bad'?'var(--badbg)':'var(--border)';
+      var cid='c_'+sys.id+'_'+e.nome.replace(/[^a-zA-Z0-9]/g,'_');
+      var hist=H.map(function(hh){var x=hh.exames.find(function(ex){return ex.nome===e.nome;});return x?{data:hh.data,valor:x.valor}:null;}).filter(Boolean);
+      var card=document.createElement('div');card.className='card '+s;
       card.innerHTML=
-        (sLabel?'<span class="exam-status" style="background:'+sBg+';color:'+cor+'">'+sLabel+'</span>':'')+
-        '<div class="exam-name" title="'+e.nome+'">'+e.nome+'</div>'+
-        '<div class="exam-value" style="color:'+cor+'">'+fmtN(e.valor)+'<span class="exam-unit">'+(e.unidade||'')+'</span></div>'+
-        (temRef(e)?'<div class="exam-ref">Ref: '+fmtN(e.min)+' – '+fmtN(e.max)+(e.unidade?' '+e.unidade:'')+'</div><div class="bar-wrap"><div class="bar-marker" style="left:'+pos+'%;background:'+cor+'"></div></div>':'<div class="exam-ref">Sem referência</div>')+
-        (hist.length>=2?'<div class="mini-chart-wrap"><canvas id="'+cid+'"></canvas></div>':'');
+        (sl?'<span class="cs" style="background:'+sb+';color:'+cor+'">'+sl+'</span>':'')+
+        '<div class="cn" title="'+e.nome+'">'+e.nome+'</div>'+
+        '<div class="cv" style="color:'+cor+'">'+fn(e.valor)+'<span class="cu">'+(e.unidade||'')+'</span></div>'+
+        (tr(e)?'<div class="cr">Ref: '+fn(e.min)+' – '+fn(e.max)+(e.unidade?' '+e.unidade:'')+'</div>'+
+               '<div class="bar"><div class="bm" style="left:'+pos+'%;background:'+cor+'"></div></div>':
+               '<div class="cr">Sem referência</div>')+
+        (hist.length>=2?'<div class="mc"><canvas id="'+cid+'"></canvas></div>':'');
       grid.appendChild(card);
       if(hist.length>=2){
         setTimeout((function(id,h,c){return function(){
           var el=document.getElementById(id);if(!el)return;
-          var r=parseInt(c.slice(1,3),16)||100,g=parseInt(c.slice(3,5),16)||150,b=parseInt(c.slice(5,7),16)||100;
-          new Chart(el,{type:'line',data:{labels:h.map(function(x){return x.data;}),datasets:[{data:h.map(function(x){return x.valor;}),borderColor:c,backgroundColor:'rgba('+r+','+g+','+b+',0.12)',borderWidth:2,pointRadius:3,pointBackgroundColor:c,tension:0.35,fill:true,spanGaps:true}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:300},plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}}});
+          var rv=parseInt(c.slice(1,3),16)||100,gv=parseInt(c.slice(3,5),16)||150,bv=parseInt(c.slice(5,7),16)||100;
+          new Chart(el,{type:'line',data:{labels:h.map(function(x){return x.data;}),datasets:[{data:h.map(function(x){return x.valor;}),borderColor:c,backgroundColor:'rgba('+rv+','+gv+','+bv+',0.12)',borderWidth:2,pointRadius:3,pointBackgroundColor:c,tension:0.35,fill:true,spanGaps:true}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:300},plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}}});
         };})(cid,hist,cor),80);
       }
     });
-    sec.appendChild(hdr);sec.appendChild(grid);wrap.appendChild(sec);
+    sec.appendChild(h);sec.appendChild(grid);w.appendChild(sec);
   });
 }
 
-function temRef(e){return e.min!==null&&e.min!==undefined&&e.max!==null&&e.max!==undefined;}
-function calcSt(v,min,max){if(v>=min&&v<=max)return 'ok';var r=max-min||1,d=v<min?(min-v)/r:(v-max)/r;return d<0.25?'warn':'bad';}
-function calcPos(v,min,max){var r=max-min||1,ext=r*.5,pos=((v-(min-ext))/(r+ext*2))*100;return Math.max(2,Math.min(98,pos));}
-function fmtN(v){if(v===null||v===undefined)return '—';if(v>=1000)return Number(v).toLocaleString('pt-BR');return parseFloat(Number(v).toFixed(2)).toString().replace('.',',');}
-function dataTs(d){if(!d)return 0;var p=d.split('/');return p.length===3?new Date(p[2],p[1]-1,p[0]).getTime():0;}
-function mostrarToast(msg){var t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(function(){t.remove();},3500);}
-function mostrarErro(msg){document.getElementById('erro-msg').textContent=msg;document.getElementById('erro-box').style.display='block';document.getElementById('loading').style.display='none';}
-function esconderErro(){document.getElementById('erro-box').style.display='none';}
+function tr(e){return e.min!==null&&e.min!==undefined&&e.max!==null&&e.max!==undefined;}
+function st(v,mn,mx){if(v>=mn&&v<=mx)return 'ok';var r=mx-mn||1,d=v<mn?(mn-v)/r:(v-mx)/r;return d<0.25?'warn':'bad';}
+function pos_calc(v,mn,mx){var r=mx-mn||1,ext=r*.5,p=((v-(mn-ext))/(r+ext*2))*100;return Math.max(2,Math.min(98,p));}
+function fn(v){if(v===null||v===undefined)return '—';if(v>=1000)return Number(v).toLocaleString('pt-BR');return parseFloat(Number(v).toFixed(2)).toString().replace('.',',');}
+function dts(d){if(!d)return 0;var p=d.split('/');return p.length===3?new Date(p[2],p[1]-1,p[0]).getTime():0;}
+function toast(msg){var t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(function(){t.remove();},3500);}
+function showErr(msg){document.getElementById('err-m').textContent=msg;document.getElementById('err').style.display='block';document.getElementById('load').style.display='none';}
+function hideErr(){document.getElementById('err').style.display='none';}
 
-if(historico.length){dataAtiva=historico[historico.length-1].data;renderizar();}
+if(H.length){DA=H[H.length-1].data;render();}
 </script>
 </body>
 </html>
