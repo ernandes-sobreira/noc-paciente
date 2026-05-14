@@ -64,10 +64,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .cn{font-size:.72rem;font-weight:700;color:var(--gray);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:54px}
 .cv{font-size:1.42rem;font-weight:800;line-height:1.1;margin-bottom:1px}
 .cu{font-size:.64rem;font-weight:400;color:var(--gray);margin-left:2px}
-.cr{font-size:.64rem;color:var(--gray);margin-bottom:5px}
+.cr{font-size:.64rem;color:var(--gray);margin-bottom:6px}
 .cs{font-size:.61rem;font-weight:700;padding:2px 6px;border-radius:99px;position:absolute;top:10px;right:10px}
-.bar{height:5px;border-radius:99px;background:linear-gradient(90deg,#22C55E 0%,#22C55E 38%,#F59E0B 58%,#EF4444 100%);position:relative;margin:3px 0 5px}
-.bm{width:11px;height:11px;border-radius:50%;position:absolute;top:50%;transform:translate(-50%,-50%);border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.22)}
+.bar{height:6px;border-radius:99px;background:linear-gradient(90deg,#22C55E 0%,#22C55E 38%,#F59E0B 58%,#EF4444 100%);position:relative;margin:3px 0 8px}
+.bm{width:18px;height:18px;border-radius:50%;position:absolute;top:50%;transform:translate(-50%,-50%);border:2.5px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3)}
 .mc{height:74px;margin-top:7px}
 .empty{text-align:center;padding:60px 20px;color:var(--gray)}
 .empty-ic{font-size:2.8rem;margin-bottom:10px}
@@ -113,19 +113,126 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   </div>
 </div>
 <script>
+// ── Tabela de referências clínicas (homem adulto como padrão) ──
+var REFS = {
+  // Hemograma
+  'hemoglobina':            {min:13,   max:17,    un:'g/dL'},
+  'hematocrito':            {min:40,   max:52,    un:'%'},
+  'hemacias':               {min:4.5,  max:6,     un:'milhões/mm³'},
+  'leucocitos':             {min:4000, max:11000, un:'/mm³'},
+  'plaquetas':              {min:150000,max:450000,un:'/mm³'},
+  'vcm':                    {min:80,   max:100,   un:'fL'},
+  'vgm':                    {min:80,   max:100,   un:'fL'},
+  'hgm':                    {min:28,   max:32,    un:'pg'},
+  'hcm':                    {min:28,   max:32,    un:'pg'},
+  'chgm':                   {min:32,   max:36,    un:'%'},
+  'chcm':                   {min:32,   max:36,    un:'%'},
+  'rdw':                    {min:11,   max:14,    un:'%'},
+  'vpm':                    {min:9.4,  max:12.4,  un:'fL'},
+  'neutrofilos':            {min:1800, max:7700,  un:'/mm³'},
+  'segmentados':            {min:1800, max:7700,  un:'/mm³'},
+  'bastonetes':             {min:0,    max:600,   un:'/mm³'},
+  'linfocitos':             {min:900,  max:3500,  un:'/mm³'},
+  'monocitos':              {min:45,   max:800,   un:'/mm³'},
+  'eosinofilos':            {min:45,   max:400,   un:'/mm³'},
+  'basofilos':              {min:0,    max:100,   un:'/mm³'},
+  // Ferro e inflamação
+  'ferro':                  {min:65,   max:175,   un:'µg/dL'},
+  'ferro serico':           {min:65,   max:175,   un:'µg/dL'},
+  'ferritina':              {min:30,   max:400,   un:'ng/mL'},
+  'saturacao transferrina': {min:20,   max:50,    un:'%'},
+  'transferrina':           {min:200,  max:360,   un:'mg/dL'},
+  'pcr':                    {min:0,    max:1,     un:'mg/L'},
+  'proteina c reativa':     {min:0,    max:1,     un:'mg/L'},
+  'vhs':                    {min:0,    max:15,    un:'mm/h'},
+  // Glicose e metabolismo
+  'glicose':                {min:70,   max:99,    un:'mg/dL'},
+  'glicemia':               {min:70,   max:99,    un:'mg/dL'},
+  'hemoglobina glicada':    {min:0,    max:5.7,   un:'%'},
+  'hba1c':                  {min:0,    max:5.7,   un:'%'},
+  'insulina':               {min:2,    max:25,    un:'µUI/mL'},
+  'homa':                   {min:0,    max:2,     un:''},
+  // Perfil lipídico
+  'colesterol total':       {min:0,    max:190,   un:'mg/dL'},
+  'hdl':                    {min:40,   max:999,   un:'mg/dL'},
+  'ldl':                    {min:0,    max:100,   un:'mg/dL'},
+  'vldl':                   {min:0,    max:30,    un:'mg/dL'},
+  'triglicerides':          {min:0,    max:150,   un:'mg/dL'},
+  'triglicerideos':         {min:0,    max:150,   un:'mg/dL'},
+  'nao hdl':                {min:0,    max:130,   un:'mg/dL'},
+  'colesterol nao hdl':     {min:0,    max:130,   un:'mg/dL'},
+  'lipidios totais':        {min:400,  max:800,   un:'mg/dL'},
+  // Fígado
+  'tgo':                    {min:10,   max:40,    un:'U/L'},
+  'ast':                    {min:10,   max:40,    un:'U/L'},
+  'tgp':                    {min:7,    max:50,    un:'U/L'},
+  'alt':                    {min:7,    max:56,    un:'U/L'},
+  'ggt':                    {min:8,    max:61,    un:'U/L'},
+  'gama gt':                {min:8,    max:61,    un:'U/L'},
+  'fosfatase alcalina':     {min:40,   max:130,   un:'U/L'},
+  'bilirrubina total':      {min:0.3,  max:1.2,   un:'mg/dL'},
+  'bilirrubina direta':     {min:0,    max:0.3,   un:'mg/dL'},
+  'bilirrubina indireta':   {min:0,    max:0.8,   un:'mg/dL'},
+  'albumina':               {min:3.5,  max:5,     un:'g/dL'},
+  // Rins
+  'creatinina':             {min:0.7,  max:1.3,   un:'mg/dL'},
+  'ureia':                  {min:10,   max:50,    un:'mg/dL'},
+  'acido urico':            {min:3.4,  max:7,     un:'mg/dL'},
+  'sodio':                  {min:135,  max:145,   un:'mEq/L'},
+  'potassio':               {min:3.5,  max:5,     un:'mEq/L'},
+  'calcio':                 {min:8.5,  max:10.5,  un:'mg/dL'},
+  'magnesio':               {min:1.7,  max:2.2,   un:'mg/dL'},
+  'fosforo':                {min:2.5,  max:4.5,   un:'mg/dL'},
+  // Hormônios
+  'tsh':                    {min:0.4,  max:4,     un:'mUI/L'},
+  't4 livre':               {min:0.8,  max:1.8,   un:'ng/dL'},
+  't3 livre':               {min:2.3,  max:4.2,   un:'pg/mL'},
+  'testosterona total':     {min:300,  max:1000,  un:'ng/dL'},
+  'estradiol':              {min:10,   max:40,    un:'pg/mL'},
+  'lh':                     {min:1.7,  max:8.6,   un:'mUI/mL'},
+  'fsh':                    {min:1.5,  max:12.4,  un:'mUI/mL'},
+  'prolactina':             {min:4,    max:15,    un:'ng/mL'},
+  'cortisol':               {min:5,    max:25,    un:'µg/dL'},
+  'dhea':                   {min:80,   max:560,   un:'µg/dL'},
+  'psa total':              {min:0,    max:4,     un:'ng/mL'},
+  // Vitaminas e ferro
+  'vitamina d':             {min:30,   max:100,   un:'ng/mL'},
+  'vitamina b12':           {min:172,  max:890,   un:'pg/mL'},
+  'acido folico':           {min:4.6,  max:34.8,  un:'ng/mL'},
+  'zinco':                  {min:70,   max:120,   un:'µg/dL'},
+  // Cardíacos
+  'troponina':              {min:0,    max:0.04,  un:'ng/mL'},
+  'nt probnp':              {min:0,    max:137,   un:'pg/mL'},
+  'bnp':                    {min:0,    max:100,   un:'pg/mL'},
+};
+
+function buscarRef(nome) {
+  var n = nome.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();
+  if (REFS[n]) return REFS[n];
+  var keys = Object.keys(REFS);
+  // busca parcial — chave contida no nome ou nome contido na chave
+  for (var i=0;i<keys.length;i++) {
+    if (n.indexOf(keys[i])>=0 || keys[i].indexOf(n)>=0) return REFS[keys[i]];
+  }
+  return null;
+}
+
 var H=[];try{H=JSON.parse(localStorage.getItem('_ex3')||'[]');}catch(e){}
 var DA=null;
 var SYS=[
-  {id:'sangue',l:'Sangue',ic:'🩸'},
-  {id:'coracao',l:'Coração e Vasos',ic:'❤️'},
-  {id:'metabol',l:'Metabolismo',ic:'⚡'},
-  {id:'renal',l:'Rins',ic:'💧'},
-  {id:'hepatico',l:'Fígado',ic:'🟤'},
-  {id:'hormonal',l:'Hormônios',ic:'🔬'},
+  {id:'sangue',   l:'Sangue',           ic:'🩸'},
+  {id:'coracao',  l:'Coração e Vasos',  ic:'❤️'},
+  {id:'metabol',  l:'Metabolismo',      ic:'⚡'},
+  {id:'renal',    l:'Rins',             ic:'💧'},
+  {id:'hepatico', l:'Fígado',           ic:'🟤'},
+  {id:'hormonal', l:'Hormônios',        ic:'🔬'},
   {id:'vitaminas',l:'Vitaminas e Ferro',ic:'✨'},
-  {id:'urina',l:'Urina',ic:'🧪'},
-  {id:'outros',l:'Outros',ic:'📋'}
+  {id:'urina',    l:'Urina',            ic:'🧪'},
+  {id:'outros',   l:'Outros',           ic:'📋'}
 ];
+
 var drop=document.getElementById('drop');
 drop.addEventListener('dragover',function(e){e.preventDefault();drop.classList.add('drag');});
 drop.addEventListener('dragleave',function(){drop.classList.remove('drag');});
@@ -152,22 +259,31 @@ function api(b64,nome){
       max_tokens:4000,
       messages:[{role:'user',content:[
         {type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}},
-        {type:'text',text:'Analise este laudo laboratorial. Extraia TODOS os exames.\n\nRetorne APENAS JSON (sem texto extra):\n{\n  "data": "DD/MM/AAAA",\n  "exames": [\n    {"nome":"Hemoglobina","valor":16.6,"unidade":"g/dL","min":13,"max":18.6,"sistema":"sangue"},\n    {"nome":"Leucócitos","valor":10240,"unidade":"/mm³","min":4500,"max":10000,"sistema":"sangue"}\n  ]\n}\n\nSistemas possíveis: sangue, coracao, metabol, renal, hepatico, hormonal, vitaminas, urina, outros.\nPara exames sem referência numérica clara, use min:null e max:null.\nExtraia TODOS os exames sem exceção.'}
+        {type:'text',text:'Analise este laudo laboratorial. Extraia TODOS os exames.\n\nRetorne APENAS JSON (sem texto extra, sem markdown):\n{\n  "data": "DD/MM/AAAA",\n  "exames": [\n    {"nome":"Hemoglobina","valor":16.6,"unidade":"g/dL","min":13,"max":18.6,"sistema":"sangue"}\n  ]\n}\n\nSistemas: sangue, coracao, metabol, renal, hepatico, hormonal, vitaminas, urina, outros.\nPara min/max use os valores do laudo quando disponíveis. Se não houver referência no laudo, use null.\nExtraia TODOS os exames sem exceção.'}
       ]}]
     })
   })
   .then(function(r){return r.json();})
   .then(function(data){
     document.getElementById('load').style.display='none';
-    if(data.error){showErr('Erro da API: '+(data.error.message||JSON.stringify(data.error)));drop.style.display='block';return;}
+    if(data.error){showErr('Erro: '+(data.error.message||JSON.stringify(data.error)));drop.style.display='block';return;}
     var txt=(data.content&&data.content[0])?data.content[0].text||'':'';
     var js=txt;
     var m=txt.match(/```(?:json)?\s*([\s\S]*?)```/);if(m)js=m[1];
     var i=js.indexOf('{');if(i>0)js=js.slice(i);
     var obj;
     try{obj=JSON.parse(js);}
-    catch(e){showErr('Erro ao interpretar resposta.\n'+e.message+'\n\nResposta:\n'+txt.slice(0,400));drop.style.display='block';return;}
-    if(!obj.exames||!obj.exames.length){showErr('Nenhum exame encontrado. Verifique se é um laudo laboratorial.');drop.style.display='block';return;}
+    catch(e){showErr('Erro ao interpretar resposta.\n'+e.message);drop.style.display='block';return;}
+    if(!obj.exames||!obj.exames.length){showErr('Nenhum exame encontrado.');drop.style.display='block';return;}
+
+    // Completa referências faltantes com a tabela interna
+    obj.exames.forEach(function(e){
+      if(e.min===null||e.min===undefined||e.max===null||e.max===undefined){
+        var ref=buscarRef(e.nome);
+        if(ref){e.min=ref.min;e.max=ref.max;if(!e.unidade&&ref.un)e.unidade=ref.un;}
+      }
+    });
+
     var d=obj.data||new Date().toLocaleDateString('pt-BR');
     d=d.replace(/(\d{4})-(\d{2})-(\d{2})/,'$3/$2/$1');
     var idx=H.findIndex(function(h){return h.data===d;});
@@ -181,7 +297,7 @@ function api(b64,nome){
   .catch(function(e){
     document.getElementById('load').style.display='none';
     drop.style.display='block';
-    showErr('Falha na conexão: '+e.message+'\n\nVerifique se o arquivo está hospedado em servidor (não funciona ao abrir como arquivo local devido a restrições de CORS).');
+    showErr('Falha na conexão: '+e.message);
   });
 }
 
@@ -240,7 +356,8 @@ function renderSC(){
 function renderSIS(){
   var en=H.find(function(h){return h.data===DA;});if(!en)return;
   var w=document.getElementById('sis');w.innerHTML='';
-  var g={};en.exames.forEach(function(e){var s=e.sistema||'outros';if(!g[s])g[s]=[];g[s].push(e);});
+  var g={};
+  en.exames.forEach(function(e){var s=e.sistema||'outros';if(!g[s])g[s]=[];g[s].push(e);});
   SYS.forEach(function(sys){
     var items=g[sys.id]||[];if(!items.length)return;
     var nb=items.filter(function(e){return tr(e)&&st(e.valor,e.min,e.max)==='bad';}).length;
@@ -258,7 +375,7 @@ function renderSIS(){
     h.onclick=function(){op=!op;grid.style.display=op?'grid':'none';ar.className='sec-ar'+(op?'':' cl');};
     items.forEach(function(e){
       var s=tr(e)?st(e.valor,e.min,e.max):'neutro';
-      var pos=tr(e)?pos_calc(e.valor,e.min,e.max):50;
+      var pos=tr(e)?pc(e.valor,e.min,e.max):50;
       var cor=s==='ok'?'#16A34A':s==='warn'?'#D97706':s==='bad'?'#DC2626':'#94A3B8';
       var sl=s==='ok'?'Normal':s==='warn'?'Atenção':s==='bad'?'Alterado':'';
       var sb=s==='ok'?'var(--okbg)':s==='warn'?'var(--warnbg)':s==='bad'?'var(--badbg)':'var(--border)';
@@ -269,9 +386,10 @@ function renderSIS(){
         (sl?'<span class="cs" style="background:'+sb+';color:'+cor+'">'+sl+'</span>':'')+
         '<div class="cn" title="'+e.nome+'">'+e.nome+'</div>'+
         '<div class="cv" style="color:'+cor+'">'+fn(e.valor)+'<span class="cu">'+(e.unidade||'')+'</span></div>'+
-        (tr(e)?'<div class="cr">Ref: '+fn(e.min)+' – '+fn(e.max)+(e.unidade?' '+e.unidade:'')+'</div>'+
-               '<div class="bar"><div class="bm" style="left:'+pos+'%;background:'+cor+'"></div></div>':
-               '<div class="cr">Sem referência</div>')+
+        (tr(e)?
+          '<div class="cr">Ref: '+fn(e.min)+' – '+fn(e.max)+(e.unidade?' '+e.unidade:'')+'</div>'+
+          '<div class="bar"><div class="bm" style="left:'+pos+'%;background:'+cor+'"></div></div>'
+          :'<div class="cr">Sem referência</div>')+
         (hist.length>=2?'<div class="mc"><canvas id="'+cid+'"></canvas></div>':'');
       grid.appendChild(card);
       if(hist.length>=2){
@@ -288,7 +406,7 @@ function renderSIS(){
 
 function tr(e){return e.min!==null&&e.min!==undefined&&e.max!==null&&e.max!==undefined;}
 function st(v,mn,mx){if(v>=mn&&v<=mx)return 'ok';var r=mx-mn||1,d=v<mn?(mn-v)/r:(v-mx)/r;return d<0.25?'warn':'bad';}
-function pos_calc(v,mn,mx){var r=mx-mn||1,ext=r*.5,p=((v-(mn-ext))/(r+ext*2))*100;return Math.max(2,Math.min(98,p));}
+function pc(v,mn,mx){var r=mx-mn||1,ext=r*.5,p=((v-(mn-ext))/(r+ext*2))*100;return Math.max(3,Math.min(97,p));}
 function fn(v){if(v===null||v===undefined)return '—';if(v>=1000)return Number(v).toLocaleString('pt-BR');return parseFloat(Number(v).toFixed(2)).toString().replace('.',',');}
 function dts(d){if(!d)return 0;var p=d.split('/');return p.length===3?new Date(p[2],p[1]-1,p[0]).getTime():0;}
 function toast(msg){var t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(function(){t.remove();},3500);}
