@@ -4,813 +4,324 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Meus Exames</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
-
-  :root {
-    --bg: #F7F8FA;
-    --card: #FFFFFF;
-    --primary: #1A6B4A;
-    --primary-light: #E8F5EE;
-    --text: #1A1F2E;
-    --gray: #7A8394;
-    --border: #E8EBF0;
-    --ok: #16A34A;
-    --ok-bg: #DCFCE7;
-    --warn: #D97706;
-    --warn-bg: #FEF3C7;
-    --bad: #DC2626;
-    --bad-bg: #FEE2E2;
-    --shadow: 0 1px 4px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.04);
-    --radius: 14px;
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-  }
-
-  /* ── HEADER ── */
-  .header {
-    background: var(--card);
-    border-bottom: 1px solid var(--border);
-    padding: 16px 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .logo { display: flex; align-items: center; gap: 10px; }
-  .logo-icon {
-    width: 36px; height: 36px;
-    background: var(--primary);
-    border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.1rem;
-  }
-  .logo-text { font-weight: 700; font-size: 1.1rem; color: var(--text); }
-  .logo-sub { font-size: .72rem; color: var(--gray); margin-top: 1px; }
-
-  /* ── MAIN ── */
-  .main { max-width: 960px; margin: 0 auto; padding: 24px 16px; }
-
-  /* ── UPLOAD ── */
-  .upload-area {
-    border: 2px dashed var(--border);
-    border-radius: var(--radius);
-    background: var(--card);
-    padding: 48px 24px;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color .2s, background .2s;
-    margin-bottom: 24px;
-  }
-  .upload-area:hover, .upload-area.drag { border-color: var(--primary); background: var(--primary-light); }
-  .upload-icon { font-size: 2.5rem; margin-bottom: 12px; }
-  .upload-title { font-weight: 700; font-size: 1.1rem; margin-bottom: 6px; }
-  .upload-sub { color: var(--gray); font-size: .85rem; }
-  .upload-btn {
-    display: inline-block;
-    margin-top: 16px;
-    background: var(--primary);
-    color: #fff;
-    padding: 10px 24px;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: .9rem;
-    cursor: pointer;
-    transition: opacity .2s;
-  }
-  .upload-btn:hover { opacity: .85; }
-  #file-input { display: none; }
-
-  /* ── HISTORICO ── */
-  .hist-bar {
-    display: flex; align-items: center; gap: 10px;
-    margin-bottom: 20px; flex-wrap: wrap;
-  }
-  .hist-label { font-size: .78rem; font-weight: 700; color: var(--gray); letter-spacing: .5px; }
-  .hist-chip {
-    padding: 5px 12px;
-    border-radius: 99px;
-    border: 1.5px solid var(--border);
-    background: var(--card);
-    font-size: .78rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all .15s;
-    font-family: 'DM Mono', monospace;
-  }
-  .hist-chip.active { background: var(--primary); color: #fff; border-color: var(--primary); }
-  .hist-chip:hover:not(.active) { border-color: var(--primary); color: var(--primary); }
-
-  /* ── SCORE ── */
-  .score-card {
-    background: var(--card);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 20px 24px;
-    margin-bottom: 24px;
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    flex-wrap: wrap;
-  }
-  .score-circle {
-    width: 72px; height: 72px;
-    border-radius: 50%;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    font-weight: 800;
-    font-size: 1.4rem;
-    flex-shrink: 0;
-  }
-  .score-circle small { font-size: .6rem; font-weight: 500; margin-top: -2px; }
-  .score-info { flex: 1; }
-  .score-title { font-weight: 700; font-size: 1rem; margin-bottom: 6px; }
-  .score-pills { display: flex; gap: 8px; flex-wrap: wrap; }
-  .pill {
-    padding: 3px 10px;
-    border-radius: 99px;
-    font-size: .75rem;
-    font-weight: 700;
-  }
-  .pill-ok { background: var(--ok-bg); color: var(--ok); }
-  .pill-warn { background: var(--warn-bg); color: var(--warn); }
-  .pill-bad { background: var(--bad-bg); color: var(--bad); }
-
-  /* ── SEÇÃO ── */
-  .section { margin-bottom: 28px; }
-  .section-header {
-    display: flex; align-items: center; gap: 10px;
-    margin-bottom: 12px;
-    cursor: pointer;
-    user-select: none;
-  }
-  .section-icon { font-size: 1.3rem; }
-  .section-title { font-weight: 700; font-size: .95rem; flex: 1; }
-  .section-badge {
-    font-size: .72rem; font-weight: 700;
-    padding: 2px 8px; border-radius: 99px;
-  }
-  .section-toggle { color: var(--gray); font-size: .8rem; }
-
-  /* ── GRID ── */
-  .cards-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 10px;
-  }
-  @media(max-width: 500px) { .cards-grid { grid-template-columns: 1fr 1fr; } }
-
-  /* ── CARD ── */
-  .exam-card {
-    background: var(--card);
-    border-radius: 12px;
-    border: 1.5px solid var(--border);
-    padding: 12px 14px;
-    box-shadow: var(--shadow);
-    position: relative;
-  }
-  .exam-card.ok { border-color: #BBF7D0; background: #F0FDF4; }
-  .exam-card.warn { border-color: #FDE68A; background: #FFFBEB; }
-  .exam-card.bad { border-color: #FECACA; background: #FFF5F5; }
-
-  .exam-name {
-    font-size: .75rem; font-weight: 700;
-    color: var(--gray);
-    margin-bottom: 4px;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .exam-value {
-    font-size: 1.5rem; font-weight: 800; line-height: 1.1;
-    margin-bottom: 2px;
-  }
-  .exam-unit { font-size: .68rem; font-weight: 400; color: var(--gray); margin-left: 3px; }
-  .exam-ref { font-size: .67rem; color: var(--gray); margin-bottom: 6px; }
-  .exam-status {
-    font-size: .65rem; font-weight: 700;
-    padding: 2px 7px; border-radius: 99px;
-    position: absolute; top: 10px; right: 10px;
-  }
-
-  /* Barra de referência */
-  .bar-wrap {
-    height: 6px; border-radius: 99px;
-    background: linear-gradient(90deg, #22C55E 0%, #22C55E 40%, #F59E0B 60%, #EF4444 100%);
-    position: relative; margin: 4px 0 6px;
-  }
-  .bar-marker {
-    width: 12px; height: 12px;
-    border-radius: 50%;
-    position: absolute; top: 50%;
-    transform: translate(-50%, -50%);
-    border: 2px solid #fff;
-    box-shadow: 0 1px 3px rgba(0,0,0,.3);
-  }
-
-  /* Mini chart */
-  .mini-chart { height: 80px; margin-top: 8px; }
-
-  /* ── LOADING ── */
-  .loading {
-    text-align: center; padding: 48px;
-    color: var(--gray);
-  }
-  .spinner {
-    width: 40px; height: 40px;
-    border: 3px solid var(--border);
-    border-top-color: var(--primary);
-    border-radius: 50%;
-    animation: spin .8s linear infinite;
-    margin: 0 auto 16px;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* ── TOAST ── */
-  .toast {
-    position: fixed; bottom: 24px; right: 24px;
-    background: var(--text); color: #fff;
-    padding: 12px 18px; border-radius: 10px;
-    font-size: .85rem; font-weight: 600;
-    box-shadow: 0 4px 20px rgba(0,0,0,.25);
-    z-index: 999;
-    animation: slideUp .3s ease;
-  }
-  @keyframes slideUp { from { transform: translateY(20px); opacity:0; } to { transform: translateY(0); opacity:1; } }
-
-  .empty {
-    text-align: center; padding: 60px 20px;
-    color: var(--gray);
-  }
-  .empty-icon { font-size: 3rem; margin-bottom: 12px; }
-  .empty-title { font-weight: 700; font-size: 1.1rem; margin-bottom: 6px; color: var(--text); }
-
-  hr.divider { border: none; border-top: 1px solid var(--border); margin: 8px 0 16px; }
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap');
+:root {
+  --bg:#F4F6F9; --card:#FFFFFF; --primary:#1A6B4A; --primary-light:#E6F4ED;
+  --text:#18202E; --gray:#6B7585; --border:#E4E8EF;
+  --ok:#16A34A; --ok-bg:#DCFCE7; --warn:#D97706; --warn-bg:#FEF3C7;
+  --bad:#DC2626; --bad-bg:#FEE2E2; --shadow:0 1px 3px rgba(0,0,0,.05),0 4px 12px rgba(0,0,0,.04);
+  --radius:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+.header{background:var(--card);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 8px rgba(0,0,0,.04);}
+.logo{display:flex;align-items:center;gap:10px;}
+.logo-icon{width:36px;height:36px;background:var(--primary);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;}
+.logo-text{font-weight:700;font-size:1.05rem;}
+.logo-sub{font-size:.7rem;color:var(--gray);}
+.btn-upload{background:var(--primary);color:#fff;border:none;border-radius:9px;padding:9px 18px;font-weight:600;font-size:.85rem;cursor:pointer;font-family:inherit;transition:opacity .2s;}
+.btn-upload:hover{opacity:.85;}
+.main{max-width:980px;margin:0 auto;padding:24px 16px;}
+.upload-area{border:2px dashed var(--border);border-radius:var(--radius);background:var(--card);padding:56px 24px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:24px;}
+.upload-area:hover,.upload-area.drag{border-color:var(--primary);background:var(--primary-light);}
+.upload-icon{font-size:3rem;margin-bottom:14px;}
+.upload-title{font-weight:700;font-size:1.15rem;margin-bottom:6px;}
+.upload-sub{color:var(--gray);font-size:.87rem;line-height:1.5;}
+.btn-escolher{display:inline-block;margin-top:20px;background:var(--primary);color:#fff;padding:11px 28px;border-radius:9px;font-weight:600;font-size:.9rem;cursor:pointer;}
+#file-input{display:none;}
+.loading{text-align:center;padding:60px 20px;}
+.spinner{width:44px;height:44px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-text{font-weight:600;font-size:1rem;margin-bottom:6px;}
+.loading-sub{color:var(--gray);font-size:.85rem;}
+.hist-bar{display:flex;align-items:center;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+.hist-label{font-size:.72rem;font-weight:700;color:var(--gray);letter-spacing:.5px;}
+.hist-chip{padding:5px 13px;border-radius:99px;border:1.5px solid var(--border);background:var(--card);font-size:.78rem;font-weight:600;cursor:pointer;transition:all .15s;font-family:'DM Mono',monospace;}
+.hist-chip.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+.hist-chip:hover:not(.active){border-color:var(--primary);color:var(--primary);}
+.hist-chip.danger{color:#DC2626;border-color:#FECACA;}
+.hist-chip.danger:hover{background:#FEE2E2;}
+.score-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 22px;margin-bottom:22px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
+.score-circle{width:70px;height:70px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;font-size:1.35rem;flex-shrink:0;}
+.score-circle small{font-size:.58rem;font-weight:500;}
+.score-title{font-weight:700;font-size:.95rem;margin-bottom:6px;}
+.score-pills{display:flex;gap:7px;flex-wrap:wrap;}
+.pill{padding:3px 10px;border-radius:99px;font-size:.74rem;font-weight:700;}
+.pill-ok{background:var(--ok-bg);color:var(--ok);}
+.pill-warn{background:var(--warn-bg);color:var(--warn);}
+.pill-bad{background:var(--bad-bg);color:var(--bad);}
+.pill-neu{background:#F1F5F9;color:#475569;}
+.section{margin-bottom:26px;}
+.section-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;cursor:pointer;user-select:none;padding:4px 2px;}
+.section-icon{font-size:1.2rem;}
+.section-title{font-weight:700;font-size:.92rem;flex:1;}
+.section-badge{font-size:.7rem;font-weight:700;padding:2px 9px;border-radius:99px;}
+.section-arrow{color:var(--gray);font-size:.85rem;transition:transform .2s;}
+.section-arrow.fechado{transform:rotate(-90deg);}
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;}
+@media(max-width:520px){.cards-grid{grid-template-columns:1fr 1fr;}}
+.exam-card{background:var(--card);border-radius:12px;border:1.5px solid var(--border);padding:12px 13px;position:relative;box-shadow:var(--shadow);transition:transform .15s;}
+.exam-card:hover{transform:translateY(-1px);}
+.exam-card.ok{border-color:#BBF7D0;background:#F0FDF4;}
+.exam-card.warn{border-color:#FDE68A;background:#FFFBEB;}
+.exam-card.bad{border-color:#FECACA;background:#FFF5F5;}
+.exam-name{font-size:.73rem;font-weight:700;color:var(--gray);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:52px;}
+.exam-value{font-size:1.45rem;font-weight:800;line-height:1.1;margin-bottom:1px;}
+.exam-unit{font-size:.65rem;font-weight:400;color:var(--gray);margin-left:2px;}
+.exam-ref{font-size:.65rem;color:var(--gray);margin-bottom:5px;}
+.exam-status{font-size:.62rem;font-weight:700;padding:2px 6px;border-radius:99px;position:absolute;top:10px;right:10px;}
+.bar-wrap{height:5px;border-radius:99px;background:linear-gradient(90deg,#22C55E 0%,#22C55E 38%,#F59E0B 58%,#EF4444 100%);position:relative;margin:3px 0 5px;}
+.bar-marker{width:11px;height:11px;border-radius:50%;position:absolute;top:50%;transform:translate(-50%,-50%);border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.25);}
+.mini-chart-wrap{height:75px;margin-top:7px;}
+.empty{text-align:center;padding:70px 20px;color:var(--gray);}
+.empty-icon{font-size:3rem;margin-bottom:12px;}
+.empty-title{font-weight:700;font-size:1.1rem;color:var(--text);margin-bottom:6px;}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:#fff;padding:11px 18px;border-radius:10px;font-size:.85rem;font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,.25);z-index:9999;animation:slideUp .25s ease;max-width:320px;}
+@keyframes slideUp{from{transform:translateY(16px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.erro-box{background:#FFF5F5;border:1.5px solid #FECACA;border-radius:var(--radius);padding:20px 22px;margin-bottom:20px;display:none;}
+.erro-titulo{font-weight:700;color:#DC2626;margin-bottom:6px;}
+.erro-msg{font-size:.85rem;color:#7F1D1D;line-height:1.6;white-space:pre-wrap;}
 </style>
 </head>
 <body>
-
 <div class="header">
   <div class="logo">
     <div class="logo-icon">🩺</div>
     <div>
       <div class="logo-text">Meus Exames</div>
-      <div class="logo-sub">Visualizador de resultados</div>
+      <div class="logo-sub">Leitura inteligente de laudos</div>
     </div>
   </div>
-  <label class="upload-btn" for="file-input" style="margin:0;font-size:.82rem;padding:8px 16px">+ Carregar PDF</label>
+  <label class="btn-upload" for="file-input">📄 Carregar PDF</label>
 </div>
-
 <div class="main">
-
-  <!-- Upload -->
   <div class="upload-area" id="drop-area" onclick="document.getElementById('file-input').click()">
-    <div class="upload-icon">📄</div>
-    <div class="upload-title">Suba seu exame em PDF</div>
-    <div class="upload-sub">O app lê automaticamente e exibe os resultados organizados</div>
-    <div class="upload-btn">Escolher arquivo PDF</div>
+    <div class="upload-icon">🔬</div>
+    <div class="upload-title">Suba seu laudo em PDF</div>
+    <div class="upload-sub">A IA lê o arquivo e extrai todos os exames automaticamente<br>com valores de referência e status</div>
+    <div class="btn-escolher">Escolher PDF</div>
   </div>
   <input type="file" id="file-input" accept=".pdf,application/pdf">
-
-  <!-- Loading -->
+  <div class="erro-box" id="erro-box">
+    <div class="erro-titulo">Erro ao processar</div>
+    <div class="erro-msg" id="erro-msg"></div>
+  </div>
   <div class="loading" id="loading" style="display:none">
     <div class="spinner"></div>
-    <div>Lendo o PDF e extraindo os valores...</div>
+    <div class="loading-text">Analisando o laudo com IA...</div>
+    <div class="loading-sub">Extraindo exames, valores e referências</div>
   </div>
-
-  <!-- Resultados -->
   <div id="resultados" style="display:none">
-
-    <!-- Histórico de datas -->
-    <div class="hist-bar" id="hist-bar">
-      <span class="hist-label">DATAS:</span>
-    </div>
-
-    <!-- Score -->
+    <div class="hist-bar" id="hist-bar"></div>
     <div class="score-card" id="score-card"></div>
-
-    <!-- Cards por sistema -->
     <div id="sistemas"></div>
-
   </div>
-
-  <!-- Empty state inicial -->
   <div class="empty" id="empty-state">
-    <div class="empty-icon">🔬</div>
+    <div class="empty-icon">📋</div>
     <div class="empty-title">Nenhum exame carregado</div>
-    <div>Suba um PDF de exame laboratorial para começar</div>
+    <div>Suba um PDF de laudo laboratorial para começar</div>
   </div>
-
 </div>
-
 <script>
-// ── PDF.js setup ──
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-// ── Estado global ──
-var historico = JSON.parse(localStorage.getItem('exames_hist') || '[]');
-var dataAtiva = null;
-
-// ── Referências por exame ──
-var REFS = {
-  // Hemograma
-  'hemoglobina':       { min:12,  max:16,   un:'g/dL' },
-  'hematocrito':       { min:36,  max:46,   un:'%' },
-  'hemacias':          { min:3.8, max:5.2,  un:'milhões/mm³' },
-  'leucocitos':        { min:4500,max:11000, un:'/mm³' },
-  'plaquetas':         { min:150000,max:400000, un:'/mm³' },
-  'neutrofilos':       { min:1800,max:7700,  un:'/mm³' },
-  'linfocitos':        { min:1000,max:4500,  un:'/mm³' },
-  'monocitos':         { min:200, max:1000,  un:'/mm³' },
-  'eosinofilos':       { min:50,  max:500,   un:'/mm³' },
-  'basofilos':         { min:0,   max:100,   un:'/mm³' },
-  'rdw':               { min:11.5,max:14.5,  un:'%' },
-  'vgm':               { min:80,  max:100,   un:'fL' },
-  'hgm':               { min:27,  max:33,    un:'pg' },
-  'chgm':              { min:31,  max:36,    un:'%' },
-  'vpm':               { min:7.5, max:12.5,  un:'fL' },
-  'segmentados':       { min:1800,max:7700,  un:'/mm³' },
-  // Bioquímica
-  'glicose':           { min:70,  max:99,    un:'mg/dL' },
-  'glicemia':          { min:70,  max:99,    un:'mg/dL' },
-  'hemoglobina glicada':{ min:0,  max:5.7,   un:'%' },
-  'hba1c':             { min:0,   max:5.7,   un:'%' },
-  'ureia':             { min:15,  max:40,    un:'mg/dL' },
-  'creatinina':        { min:0.6, max:1.2,   un:'mg/dL' },
-  'acido urico':       { min:2.4, max:6.0,   un:'mg/dL' },
-  'colesterol total':  { min:0,   max:190,   un:'mg/dL' },
-  'hdl':               { min:50,  max:999,   un:'mg/dL' },
-  'ldl':               { min:0,   max:130,   un:'mg/dL' },
-  'vldl':              { min:0,   max:30,    un:'mg/dL' },
-  'triglicerideos':    { min:0,   max:150,   un:'mg/dL' },
-  'tgo':               { min:0,   max:40,    un:'U/L' },
-  'tgp':               { min:0,   max:41,    un:'U/L' },
-  'ast':               { min:0,   max:40,    un:'U/L' },
-  'alt':               { min:0,   max:41,    un:'U/L' },
-  'ggt':               { min:0,   max:61,    un:'U/L' },
-  'fosfatase alcalina': { min:30, max:120,   un:'U/L' },
-  'bilirrubina total': { min:0,   max:1.2,   un:'mg/dL' },
-  'proteinas totais':  { min:6.0, max:8.0,   un:'g/dL' },
-  'albumina':          { min:3.5, max:5.0,   un:'g/dL' },
-  'sodio':             { min:136, max:145,   un:'mEq/L' },
-  'potassio':          { min:3.5, max:5.0,   un:'mEq/L' },
-  'calcio':            { min:8.5, max:10.5,  un:'mg/dL' },
-  'magnesio':          { min:1.7, max:2.2,   un:'mg/dL' },
-  'fosforo':           { min:2.5, max:4.5,   un:'mg/dL' },
-  'ferro':             { min:60,  max:170,   un:'µg/dL' },
-  'ferritina':         { min:12,  max:150,   un:'ng/mL' },
-  // Hormônios
-  'tsh':               { min:0.4, max:4.0,   un:'mUI/L' },
-  't4 livre':          { min:0.8, max:1.9,   un:'ng/dL' },
-  't3 livre':          { min:2.3, max:4.2,   un:'pg/mL' },
-  'insulina':          { min:2.0, max:25.0,  un:'µUI/mL' },
-  'vitamina d':        { min:30,  max:100,   un:'ng/mL' },
-  'vitamina b12':      { min:200, max:900,   un:'pg/mL' },
-  'psa total':         { min:0,   max:4.0,   un:'ng/mL' },
-  'testosterona total':{ min:300, max:1000,  un:'ng/dL' },
-  'cortisol':          { min:6.2, max:19.4,  un:'µg/dL' },
-  'lh':                { min:1.7, max:8.6,   un:'mUI/mL' },
-  'fsh':               { min:1.5, max:12.4,  un:'mUI/mL' },
-  'prolactina':        { min:2.0, max:18.0,  un:'ng/mL' },
-  // Urina
-  'ph urina':          { min:5.0, max:7.0,   un:'' },
-  'densidade':         { min:1010,max:1025,  un:'' },
-};
-
-var SISTEMAS = [
-  { id:'sangue',    label:'Sangue',           icon:'🩸', keys:['hemoglobina','hematocrito','hemacias','leucocitos','plaquetas','neutrofilos','segmentados','linfocitos','monocitos','eosinofilos','basofilos','rdw','vgm','hgm','chgm','vpm'] },
-  { id:'coracao',   label:'Coração e Vasos',  icon:'❤️', keys:['colesterol total','hdl','ldl','vldl','triglicerideos'] },
-  { id:'metabol',   label:'Metabolismo',      icon:'⚡', keys:['glicose','glicemia','hemoglobina glicada','hba1c','insulina'] },
-  { id:'renal',     label:'Rins',             icon:'💧', keys:['ureia','creatinina','acido urico','sodio','potassio','calcio','magnesio','fosforo'] },
-  { id:'hepatico',  label:'Fígado',           icon:'🫀', keys:['tgo','ast','tgp','alt','ggt','fosfatase alcalina','bilirrubina total','proteinas totais','albumina'] },
-  { id:'hormonal',  label:'Hormônios',        icon:'🔬', keys:['tsh','t4 livre','t3 livre','testosterona total','lh','fsh','prolactina','cortisol','psa total'] },
-  { id:'vitaminas', label:'Vitaminas e Ferro',icon:'✨', keys:['vitamina d','vitamina b12','ferro','ferritina'] },
-  { id:'outros',    label:'Outros',           icon:'📋', keys:[] },
+var historico=[];
+try{historico=JSON.parse(localStorage.getItem('_exames_v2')||'[]');}catch(e){}
+var dataAtiva=null;
+var SISTEMAS=[
+  {id:'sangue',label:'Sangue',icon:'🩸'},
+  {id:'coracao',label:'Coração e Vasos',icon:'❤️'},
+  {id:'metabol',label:'Metabolismo',icon:'⚡'},
+  {id:'renal',label:'Rins',icon:'💧'},
+  {id:'hepatico',label:'Fígado',icon:'🟤'},
+  {id:'hormonal',label:'Hormônios',icon:'🔬'},
+  {id:'vitaminas',label:'Vitaminas e Ferro',icon:'✨'},
+  {id:'urina',label:'Urina',icon:'🧪'},
+  {id:'outros',label:'Outros',icon:'📋'},
 ];
+var dropArea=document.getElementById('drop-area');
+dropArea.addEventListener('dragover',function(e){e.preventDefault();dropArea.classList.add('drag');});
+dropArea.addEventListener('dragleave',function(){dropArea.classList.remove('drag');});
+dropArea.addEventListener('drop',function(e){e.preventDefault();dropArea.classList.remove('drag');var f=e.dataTransfer.files[0];if(f)processarPDF(f);});
+document.getElementById('file-input').addEventListener('change',function(){if(this.files[0])processarPDF(this.files[0]);this.value='';});
 
-// ── Drag & drop ──
-var dropArea = document.getElementById('drop-area');
-dropArea.addEventListener('dragover', function(e){ e.preventDefault(); dropArea.classList.add('drag'); });
-dropArea.addEventListener('dragleave', function(){ dropArea.classList.remove('drag'); });
-dropArea.addEventListener('drop', function(e){
-  e.preventDefault(); dropArea.classList.remove('drag');
-  var f = e.dataTransfer.files[0];
-  if (f && f.type === 'application/pdf') processarPDF(f);
-});
-document.getElementById('file-input').addEventListener('change', function(){
-  if (this.files[0]) processarPDF(this.files[0]);
-});
-
-// ── Processar PDF ──
-function processarPDF(file) {
-  document.getElementById('loading').style.display = 'block';
-  document.getElementById('empty-state').style.display = 'none';
-  document.getElementById('resultados').style.display = 'none';
-  document.getElementById('drop-area').style.display = 'none';
-
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    var typedArray = new Uint8Array(e.target.result);
-    pdfjsLib.getDocument(typedArray).promise.then(function(pdf) {
-      var pages = [];
-      var total = pdf.numPages;
-      for (var i=1;i<=total;i++) pages.push(i);
-      var texts = [];
-      var done = 0;
-      pages.forEach(function(pn) {
-        pdf.getPage(pn).then(function(page) {
-          page.getTextContent().then(function(tc) {
-            texts.push({ pn: pn, text: tc.items.map(function(i){ return i.str; }).join(' ') });
-            done++;
-            if (done === total) {
-              texts.sort(function(a,b){ return a.pn-b.pn; });
-              var textoCompleto = texts.map(function(t){ return t.text; }).join('\n');
-              var exames = extrairExames(textoCompleto);
-              var data = detectarData(textoCompleto);
-              salvarEExibir(exames, data, file.name);
-            }
-          });
-        });
-      });
-    }).catch(function(err) {
-      document.getElementById('loading').style.display = 'none';
-      document.getElementById('drop-area').style.display = 'block';
-      mostrarToast('Erro ao ler PDF: ' + err.message);
-    });
+function processarPDF(file){
+  esconderErro();
+  document.getElementById('loading').style.display='block';
+  document.getElementById('empty-state').style.display='none';
+  document.getElementById('resultados').style.display='none';
+  dropArea.style.display='none';
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var base64=e.target.result.split(',')[1];
+    chamarAPI(base64,file.name);
   };
-  reader.readAsArrayBuffer(file);
+  reader.readAsDataURL(file);
 }
 
-// ── Detectar data do exame ──
-function detectarData(texto) {
-  var m = texto.match(/(\d{2})[\/\-\.](\d{2})[\/\-\.](\d{4})/);
-  if (m) return m[3]+'-'+m[2]+'-'+m[1];
-  return new Date().toISOString().split('T')[0];
-}
+function chamarAPI(base64,nomeArq){
+  var prompt='Analise este PDF de laudo laboratorial e extraia TODOS os exames.\n\nPara cada exame retorne:\n- nome: nome do exame em português\n- valor: número\n- unidade: unidade de medida\n- min: valor mínimo de referência (número ou null)\n- max: valor máximo de referência (número ou null)\n- sistema: sangue, coracao, metabol, renal, hepatico, hormonal, vitaminas, urina, ou outros\n\nRetorne APENAS JSON válido, sem texto extra:\n{\n  "data": "DD/MM/AAAA ou null",\n  "exames": [\n    {"nome":"Hemoglobina","valor":16.5,"unidade":"g/dL","min":12,"max":16,"sistema":"sangue"}\n  ]\n}\n\nExtraia TODOS os exames sem exceção.';
 
-// ── Extrair exames do texto ──
-function extrairExames(texto) {
-  var exames = {};
-  var linhas = texto.split(/[\n\r]+/);
-
-  // Padrões comuns em laudos brasileiros
-  var padroes = [
-    // "Nome do exame: valor unidade Ref: min-max"
-    /([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\s\(\)\.]{2,40})[:\s]+([0-9]+[,\.]?[0-9]*)\s*([a-zA-Z\/µ%²³]*)\s*(?:[Rr]ef(?:er[eê]ncia)?\.?:?\s*([0-9]+[,\.]?[0-9]*)\s*[-–a]\s*([0-9]+[,\.]?[0-9]*))?/,
-  ];
-
-  linhas.forEach(function(linha) {
-    linha = linha.trim();
-    if (linha.length < 5) return;
-
-    // Tenta encontrar nome + valor na linha
-    var m = linha.match(/^([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\s\(\)\.\/]{1,45}?)\s*[:\s]\s*([0-9]+[,\.]?[0-9]*)\s*([a-zA-Z\/µ%²³]{0,10})/);
-    if (!m) return;
-
-    var nome = m[1].trim().toLowerCase()
-      .replace(/[^a-zA-ZÀ-ÿ\s]/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
-
-    var valorStr = m[2].replace(',','.');
-    var valor = parseFloat(valorStr);
-    var unidade = m[3] || '';
-
-    if (isNaN(valor) || valor <= 0) return;
-    if (nome.length < 3) return;
-
-    // Ignora linhas que são claramente não-exames
-    var ignorar = ['pagina','page','data','hora','resultado','laudo','laboratorio','paciente','medico','crm','solicitante','material','metodo'];
-    if (ignorar.some(function(ig){ return nome.indexOf(ig) >= 0; })) return;
-
-    // Tenta pegar referência na mesma linha
-    var minRef = null, maxRef = null;
-    var refMatch = linha.match(/[Rr]ef(?:er[eê]ncia)?\.?:?\s*([0-9]+[,\.]?[0-9]*)\s*[-–a]\s*([0-9]+[,\.]?[0-9]*)/);
-    if (refMatch) {
-      minRef = parseFloat(refMatch[1].replace(',','.'));
-      maxRef = parseFloat(refMatch[2].replace(',','.'));
-    }
-
-    // Busca referência no dicionário se não encontrou
-    var refConhecida = buscarRef(nome);
-
-    exames[nome] = {
-      nome: m[1].trim(),
-      valor: valor,
-      unidade: unidade || (refConhecida ? refConhecida.un : ''),
-      min: minRef !== null ? minRef : (refConhecida ? refConhecida.min : null),
-      max: maxRef !== null ? maxRef : (refConhecida ? refConhecida.max : null),
-    };
+  fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      model:'claude-sonnet-4-20250514',
+      max_tokens:4000,
+      messages:[{
+        role:'user',
+        content:[
+          {type:'document',source:{type:'base64',media_type:'application/pdf',data:base64}},
+          {type:'text',text:prompt}
+        ]
+      }]
+    })
+  })
+  .then(function(r){return r.json();})
+  .then(function(data){
+    document.getElementById('loading').style.display='none';
+    if(data.error){mostrarErro('Erro da API: '+(data.error.message||JSON.stringify(data.error)));dropArea.style.display='block';return;}
+    var texto=(data.content&&data.content[0])?data.content[0].text||'':'';
+    var jsonStr=texto;
+    var m=texto.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if(m)jsonStr=m[1];
+    var idxJ=jsonStr.indexOf('{');
+    if(idxJ>0)jsonStr=jsonStr.slice(idxJ);
+    var resultado;
+    try{resultado=JSON.parse(jsonStr);}
+    catch(e){mostrarErro('Não foi possível interpretar a resposta.\n'+e.message+'\n\nResposta recebida:\n'+texto.slice(0,300));dropArea.style.display='block';return;}
+    if(!resultado.exames||!resultado.exames.length){mostrarErro('Nenhum exame encontrado. Verifique se é um laudo laboratorial válido.');dropArea.style.display='block';return;}
+    var d=resultado.data||new Date().toLocaleDateString('pt-BR');
+    d=d.replace(/(\d{4})-(\d{2})-(\d{2})/,'$3/$2/$1');
+    var idx=historico.findIndex(function(h){return h.data===d;});
+    if(idx>=0){historico[idx].exames=resultado.exames;}
+    else{historico.push({data:d,nomeArq:nomeArq,exames:resultado.exames});historico.sort(function(a,b){return dataTs(a.data)-dataTs(b.data);});}
+    try{localStorage.setItem('_exames_v2',JSON.stringify(historico));}catch(e){}
+    dataAtiva=d;
+    mostrarToast('✅ '+resultado.exames.length+' exames carregados!');
+    dropArea.style.display='none';
+    renderizar();
+  })
+  .catch(function(err){
+    document.getElementById('loading').style.display='none';
+    dropArea.style.display='block';
+    mostrarErro('Falha na conexão: '+err.message);
   });
-
-  return exames;
 }
 
-function buscarRef(nome) {
-  // Busca exata
-  if (REFS[nome]) return REFS[nome];
-  // Busca parcial
-  var keys = Object.keys(REFS);
-  for (var i=0;i<keys.length;i++) {
-    if (nome.indexOf(keys[i]) >= 0 || keys[i].indexOf(nome) >= 0) return REFS[keys[i]];
-  }
-  return null;
+function renderizar(){
+  if(!historico.length){document.getElementById('resultados').style.display='none';document.getElementById('empty-state').style.display='block';dropArea.style.display='block';return;}
+  document.getElementById('empty-state').style.display='none';
+  document.getElementById('resultados').style.display='block';
+  if(!dataAtiva)dataAtiva=historico[historico.length-1].data;
+  renderHistBar();renderScore();renderSistemas();
 }
 
-// ── Salvar e exibir ──
-function salvarEExibir(exames, data, nomeArq) {
-  if (Object.keys(exames).length === 0) {
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('drop-area').style.display = 'block';
-    mostrarToast('Não encontrei exames neste PDF. Tente outro arquivo.');
-    return;
-  }
-
-  // Verifica se já existe essa data
-  var idx = historico.findIndex(function(h){ return h.data === data; });
-  if (idx >= 0) {
-    // Mescla — novos dados sobrescrevem
-    Object.assign(historico[idx].exames, exames);
-  } else {
-    historico.push({ data: data, nomeArq: nomeArq, exames: exames });
-    historico.sort(function(a,b){ return a.data > b.data ? 1 : -1; });
-  }
-
-  localStorage.setItem('exames_hist', JSON.stringify(historico));
-  dataAtiva = data;
-
-  document.getElementById('loading').style.display = 'none';
-  mostrarToast('✅ ' + Object.keys(exames).length + ' exames carregados!');
-  renderizar();
-}
-
-// ── Renderizar ──
-function renderizar() {
-  if (!historico.length) {
-    document.getElementById('resultados').style.display = 'none';
-    document.getElementById('empty-state').style.display = 'block';
-    return;
-  }
-
-  document.getElementById('empty-state').style.display = 'none';
-  document.getElementById('resultados').style.display = 'block';
-  document.getElementById('drop-area').style.display = 'none';
-
-  if (!dataAtiva) dataAtiva = historico[historico.length-1].data;
-
-  renderHistBar();
-  renderScore();
-  renderSistemas();
-}
-
-function renderHistBar() {
-  var bar = document.getElementById('hist-bar');
-  bar.innerHTML = '<span class="hist-label">DATAS:</span>';
-  historico.forEach(function(h) {
-    var chip = document.createElement('span');
-    chip.className = 'hist-chip' + (h.data === dataAtiva ? ' active' : '');
-    chip.textContent = formatarData(h.data);
-    chip.onclick = function() { dataAtiva = h.data; renderizar(); };
+function renderHistBar(){
+  var bar=document.getElementById('hist-bar');
+  bar.innerHTML='<span class="hist-label">DATAS:</span>';
+  historico.forEach(function(h){
+    var chip=document.createElement('span');
+    chip.className='hist-chip'+(h.data===dataAtiva?' active':'');
+    chip.textContent=h.data;chip.title=h.nomeArq||'';
+    chip.onclick=function(){dataAtiva=h.data;renderizar();};
     bar.appendChild(chip);
   });
-  // Botão limpar
-  var btnLimpar = document.createElement('span');
-  btnLimpar.className = 'hist-chip';
-  btnLimpar.style.cssText = 'color:#DC2626;border-color:#FECACA;margin-left:auto';
-  btnLimpar.textContent = '🗑 Limpar tudo';
-  btnLimpar.onclick = function() {
-    if (confirm('Apagar todo o histórico?')) {
-      historico = []; dataAtiva = null;
-      localStorage.removeItem('exames_hist');
-      document.getElementById('resultados').style.display = 'none';
-      document.getElementById('empty-state').style.display = 'block';
-      document.getElementById('drop-area').style.display = 'block';
-    }
+  var btn=document.createElement('span');
+  btn.className='hist-chip danger';btn.style.marginLeft='auto';btn.textContent='🗑 Limpar';
+  btn.onclick=function(){
+    if(!confirm('Apagar todo o histórico?'))return;
+    historico=[];dataAtiva=null;
+    try{localStorage.removeItem('_exames_v2');}catch(e){}
+    document.getElementById('resultados').style.display='none';
+    document.getElementById('empty-state').style.display='block';
+    dropArea.style.display='block';
   };
-  bar.appendChild(btnLimpar);
+  bar.appendChild(btn);
 }
 
-function renderScore() {
-  var entrada = historico.find(function(h){ return h.data === dataAtiva; });
-  if (!entrada) return;
-  var exames = entrada.exames;
-  var total = 0, ok = 0, warn = 0, bad = 0;
-
-  Object.values(exames).forEach(function(e) {
-    if (e.min === null || e.max === null) return;
-    total++;
-    var s = status(e.valor, e.min, e.max);
-    if (s === 'ok') ok++;
-    else if (s === 'warn') warn++;
-    else bad++;
+function renderScore(){
+  var entrada=historico.find(function(h){return h.data===dataAtiva;});
+  if(!entrada)return;
+  var total=0,ok=0,warn=0,bad=0;
+  entrada.exames.forEach(function(e){
+    if(!temRef(e))return;total++;
+    var s=calcSt(e.valor,e.min,e.max);
+    if(s==='ok')ok++;else if(s==='warn')warn++;else bad++;
   });
-
-  var pct = total > 0 ? Math.round((ok / total) * 100) : 0;
-  var cor = pct >= 80 ? '#16A34A' : pct >= 60 ? '#D97706' : '#DC2626';
-  var bgCor = pct >= 80 ? '#DCFCE7' : pct >= 60 ? '#FEF3C7' : '#FEE2E2';
-
-  document.getElementById('score-card').innerHTML =
-    '<div class="score-circle" style="background:'+bgCor+';color:'+cor+'">' +
-    pct + '<small>%</small>' +
-    '</div>' +
-    '<div class="score-info">' +
-    '<div class="score-title">Resultado geral — ' + formatarData(dataAtiva) + '</div>' +
-    '<div class="score-pills">' +
-    (ok   ? '<span class="pill pill-ok">✅ '+ok+' normais</span>' : '') +
-    (warn ? '<span class="pill pill-warn">⚠️ '+warn+' atenção</span>' : '') +
-    (bad  ? '<span class="pill pill-bad">🔴 '+bad+' alterados</span>' : '') +
-    '<span class="pill" style="background:#F1F5F9;color:#475569">'+total+' avaliados</span>' +
+  var pct=total>0?Math.round(ok/total*100):0;
+  var cor=pct>=80?'#16A34A':pct>=60?'#D97706':'#DC2626';
+  var bg=pct>=80?'#DCFCE7':pct>=60?'#FEF3C7':'#FEE2E2';
+  document.getElementById('score-card').innerHTML=
+    '<div class="score-circle" style="background:'+bg+';color:'+cor+'">'+pct+'<small>%</small></div>'+
+    '<div><div class="score-title">Resultado geral — '+dataAtiva+'</div>'+
+    '<div class="score-pills">'+
+    (ok?'<span class="pill pill-ok">✅ '+ok+' normais</span>':'')+
+    (warn?'<span class="pill pill-warn">⚠️ '+warn+' atenção</span>':'')+
+    (bad?'<span class="pill pill-bad">🔴 '+bad+' alterados</span>':'')+
+    '<span class="pill pill-neu">'+entrada.exames.length+' exames</span>'+
     '</div></div>';
 }
 
-function renderSistemas() {
-  var entrada = historico.find(function(h){ return h.data === dataAtiva; });
-  if (!entrada) return;
-  var exames = entrada.exames;
-  var wrap = document.getElementById('sistemas');
-  wrap.innerHTML = '';
-
-  // Distribui exames nos sistemas
-  var distribuidos = {};
-  var nomesExames = Object.keys(exames);
-
-  nomesExames.forEach(function(nomeKey) {
-    var sistemaId = 'outros';
-    for (var i=0;i<SISTEMAS.length-1;i++) {
-      var sys = SISTEMAS[i];
-      for (var j=0;j<sys.keys.length;j++) {
-        if (nomeKey.indexOf(sys.keys[j]) >= 0 || sys.keys[j].indexOf(nomeKey) >= 0) {
-          sistemaId = sys.id; break;
-        }
-      }
-      if (sistemaId !== 'outros') break;
-    }
-    if (!distribuidos[sistemaId]) distribuidos[sistemaId] = [];
-    distribuidos[sistemaId].push(nomeKey);
-  });
-
-  SISTEMAS.forEach(function(sys) {
-    var items = distribuidos[sys.id] || [];
-    if (!items.length) return;
-
-    var badCount = items.filter(function(k){
-      var e = exames[k];
-      return e.min !== null && e.max !== null && status(e.valor,e.min,e.max) === 'bad';
-    }).length;
-    var warnCount = items.filter(function(k){
-      var e = exames[k];
-      return e.min !== null && e.max !== null && status(e.valor,e.min,e.max) === 'warn';
-    }).length;
-
-    var badgeCor = badCount ? '#DC2626' : warnCount ? '#D97706' : '#16A34A';
-    var badgeBg  = badCount ? '#FEE2E2' : warnCount ? '#FEF3C7' : '#DCFCE7';
-    var badgeLabel = badCount ? badCount+' alterado'+(badCount>1?'s':'') : warnCount ? warnCount+' atenção' : 'Normal';
-
-    var sec = document.createElement('div');
-    sec.className = 'section';
-    sec.id = 'sec-' + sys.id;
-
-    var header = document.createElement('div');
-    header.className = 'section-header';
-    header.innerHTML =
-      '<span class="section-icon">'+sys.icon+'</span>' +
-      '<span class="section-title">'+sys.label+'</span>' +
-      '<span class="section-badge" style="background:'+badgeBg+';color:'+badgeCor+'">'+badgeLabel+'</span>' +
-      '<span class="section-toggle">▾</span>';
-
-    var body = document.createElement('div');
-    body.className = 'cards-grid';
-    body.id = 'body-' + sys.id;
-
-    var aberto = true;
-    header.onclick = function() {
-      aberto = !aberto;
-      body.style.display = aberto ? 'grid' : 'none';
-      header.querySelector('.section-toggle').textContent = aberto ? '▾' : '▸';
-    };
-
-    items.forEach(function(nomeKey) {
-      var e = exames[nomeKey];
-      var s = (e.min !== null && e.max !== null) ? status(e.valor, e.min, e.max) : 'neutro';
-      var pos = (e.min !== null && e.max !== null) ? calcPos(e.valor, e.min, e.max) : 50;
-      var corMarker = s === 'ok' ? '#16A34A' : s === 'warn' ? '#D97706' : '#DC2626';
-
-      // Histórico para minigráfico
-      var hist = historico.map(function(h) {
-        var ex = h.exames[nomeKey];
-        return ex ? { data: h.data, valor: ex.valor } : null;
-      }).filter(Boolean);
-
-      var chartId = 'chart_' + nomeKey.replace(/[^a-z0-9]/g,'_');
-
-      var card = document.createElement('div');
-      card.className = 'exam-card ' + s;
-
-      var statusLabel = s === 'ok' ? 'Normal' : s === 'warn' ? 'Atenção' : s === 'bad' ? 'Alterado' : '';
-      var statusCor = s === 'ok' ? 'var(--ok)' : s === 'warn' ? 'var(--warn)' : s === 'bad' ? 'var(--bad)' : 'var(--gray)';
-      var statusBg = s === 'ok' ? 'var(--ok-bg)' : s === 'warn' ? 'var(--warn-bg)' : s === 'bad' ? 'var(--bad-bg)' : 'var(--border)';
-
-      card.innerHTML =
-        (statusLabel ? '<span class="exam-status" style="background:'+statusBg+';color:'+statusCor+'">'+statusLabel+'</span>' : '') +
-        '<div class="exam-name">' + e.nome + '</div>' +
-        '<div class="exam-value" style="color:'+corMarker+'">' + formatNum(e.valor) + '<span class="exam-unit">' + (e.unidade||'') + '</span></div>' +
-        (e.min !== null ? '<div class="exam-ref">Ref: '+formatNum(e.min)+' – '+formatNum(e.max)+(e.unidade?' '+e.unidade:'')+'</div>' : '<div class="exam-ref">Sem referência</div>') +
-        (e.min !== null ? '<div class="bar-wrap"><div class="bar-marker" style="left:'+pos+'%;background:'+corMarker+'"></div></div>' : '') +
-        (hist.length >= 2 ? '<div class="mini-chart"><canvas id="'+chartId+'"></canvas></div>' : '');
-
-      body.appendChild(card);
-
-      // Renderiza gráfico após inserir no DOM
-      if (hist.length >= 2) {
-        setTimeout(function(cid, ch, cor) {
-          var el = document.getElementById(cid);
-          if (!el) return;
-          var labels = ch.map(function(h){ return formatarData(h.data); });
-          var vals = ch.map(function(h){ return h.valor; });
-          var r = parseInt(cor.slice(1,3),16)||22;
-          var g = parseInt(cor.slice(3,5),16)||163;
-          var b = parseInt(cor.slice(5,7),16)||74;
-          new Chart(el, {
-            type: 'line',
-            data: { labels: labels, datasets: [{
-              data: vals,
-              borderColor: cor,
-              backgroundColor: 'rgba('+r+','+g+','+b+',0.12)',
-              borderWidth: 2,
-              pointRadius: 3,
-              pointBackgroundColor: cor,
-              tension: 0.3,
-              fill: true,
-              spanGaps: true
-            }]},
-            options: {
-              responsive: true, maintainAspectRatio: false,
-              animation: { duration: 400 },
-              plugins: { legend: { display: false } },
-              scales: { x: { display: false }, y: { display: false } }
-            }
-          });
-        }, 80, chartId, hist, corMarker);
+function renderSistemas(){
+  var entrada=historico.find(function(h){return h.data===dataAtiva;});
+  if(!entrada)return;
+  var wrap=document.getElementById('sistemas');wrap.innerHTML='';
+  var grupos={};
+  entrada.exames.forEach(function(e){var s=e.sistema||'outros';if(!grupos[s])grupos[s]=[];grupos[s].push(e);});
+  SISTEMAS.forEach(function(sys){
+    var items=grupos[sys.id]||[];if(!items.length)return;
+    var nBad=items.filter(function(e){return temRef(e)&&calcSt(e.valor,e.min,e.max)==='bad';}).length;
+    var nWarn=items.filter(function(e){return temRef(e)&&calcSt(e.valor,e.min,e.max)==='warn';}).length;
+    var bCor=nBad?'#DC2626':nWarn?'#D97706':'#16A34A';
+    var bBg=nBad?'#FEE2E2':nWarn?'#FEF3C7':'#DCFCE7';
+    var bLabel=nBad?nBad+' alterado'+(nBad>1?'s':''):nWarn?nWarn+' atenção':'Normal';
+    var sec=document.createElement('div');sec.className='section';
+    var hdr=document.createElement('div');hdr.className='section-header';
+    var arrow=document.createElement('span');arrow.className='section-arrow';arrow.textContent='▾';
+    hdr.innerHTML='<span class="section-icon">'+sys.icon+'</span><span class="section-title">'+sys.label+'</span><span class="section-badge" style="background:'+bBg+';color:'+bCor+'">'+bLabel+'</span>';
+    hdr.appendChild(arrow);
+    var grid=document.createElement('div');grid.className='cards-grid';
+    var aberto=true;
+    hdr.onclick=function(){aberto=!aberto;grid.style.display=aberto?'grid':'none';arrow.className='section-arrow'+(aberto?'':' fechado');};
+    items.forEach(function(e){
+      var s=temRef(e)?calcSt(e.valor,e.min,e.max):'neutro';
+      var pos=temRef(e)?calcPos(e.valor,e.min,e.max):50;
+      var cor=s==='ok'?'#16A34A':s==='warn'?'#D97706':s==='bad'?'#DC2626':'#94A3B8';
+      var sLabel=s==='ok'?'Normal':s==='warn'?'Atenção':s==='bad'?'Alterado':'';
+      var sBg=s==='ok'?'var(--ok-bg)':s==='warn'?'var(--warn-bg)':s==='bad'?'var(--bad-bg)':'var(--border)';
+      var cid='ch_'+sys.id+'_'+e.nome.replace(/[^a-zA-Z0-9]/g,'_');
+      var hist=historico.map(function(h){var x=h.exames.find(function(ex){return ex.nome===e.nome;});return x?{data:h.data,valor:x.valor}:null;}).filter(Boolean);
+      var card=document.createElement('div');card.className='exam-card '+s;
+      card.innerHTML=
+        (sLabel?'<span class="exam-status" style="background:'+sBg+';color:'+cor+'">'+sLabel+'</span>':'')+
+        '<div class="exam-name" title="'+e.nome+'">'+e.nome+'</div>'+
+        '<div class="exam-value" style="color:'+cor+'">'+fmtN(e.valor)+'<span class="exam-unit">'+(e.unidade||'')+'</span></div>'+
+        (temRef(e)?'<div class="exam-ref">Ref: '+fmtN(e.min)+' – '+fmtN(e.max)+(e.unidade?' '+e.unidade:'')+'</div><div class="bar-wrap"><div class="bar-marker" style="left:'+pos+'%;background:'+cor+'"></div></div>':'<div class="exam-ref">Sem referência</div>')+
+        (hist.length>=2?'<div class="mini-chart-wrap"><canvas id="'+cid+'"></canvas></div>':'');
+      grid.appendChild(card);
+      if(hist.length>=2){
+        setTimeout((function(id,h,c){return function(){
+          var el=document.getElementById(id);if(!el)return;
+          var r=parseInt(c.slice(1,3),16)||100,g=parseInt(c.slice(3,5),16)||150,b=parseInt(c.slice(5,7),16)||100;
+          new Chart(el,{type:'line',data:{labels:h.map(function(x){return x.data;}),datasets:[{data:h.map(function(x){return x.valor;}),borderColor:c,backgroundColor:'rgba('+r+','+g+','+b+',0.12)',borderWidth:2,pointRadius:3,pointBackgroundColor:c,tension:0.35,fill:true,spanGaps:true}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:300},plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}}});
+        };})(cid,hist,cor),80);
       }
     });
-
-    sec.appendChild(header);
-    sec.appendChild(body);
-    wrap.appendChild(sec);
+    sec.appendChild(hdr);sec.appendChild(grid);wrap.appendChild(sec);
   });
 }
 
-// ── Helpers ──
-function status(v, min, max) {
-  if (min === null || max === null) return 'neutro';
-  var range = max - min;
-  if (v >= min && v <= max) return 'ok';
-  var dist = v < min ? (min - v) / range : (v - max) / range;
-  return dist < 0.25 ? 'warn' : 'bad';
-}
+function temRef(e){return e.min!==null&&e.min!==undefined&&e.max!==null&&e.max!==undefined;}
+function calcSt(v,min,max){if(v>=min&&v<=max)return 'ok';var r=max-min||1,d=v<min?(min-v)/r:(v-max)/r;return d<0.25?'warn':'bad';}
+function calcPos(v,min,max){var r=max-min||1,ext=r*.5,pos=((v-(min-ext))/(r+ext*2))*100;return Math.max(2,Math.min(98,pos));}
+function fmtN(v){if(v===null||v===undefined)return '—';if(v>=1000)return Number(v).toLocaleString('pt-BR');return parseFloat(Number(v).toFixed(2)).toString().replace('.',',');}
+function dataTs(d){if(!d)return 0;var p=d.split('/');return p.length===3?new Date(p[2],p[1]-1,p[0]).getTime():0;}
+function mostrarToast(msg){var t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(function(){t.remove();},3500);}
+function mostrarErro(msg){document.getElementById('erro-msg').textContent=msg;document.getElementById('erro-box').style.display='block';document.getElementById('loading').style.display='none';}
+function esconderErro(){document.getElementById('erro-box').style.display='none';}
 
-function calcPos(v, min, max) {
-  var range = max - min;
-  var ext = range * 0.5;
-  var total = range + ext * 2;
-  var pos = ((v - (min - ext)) / total) * 100;
-  return Math.max(2, Math.min(98, pos));
-}
-
-function formatNum(v) {
-  if (v === null || v === undefined) return '—';
-  if (v >= 1000) return v.toLocaleString('pt-BR');
-  return parseFloat(v.toFixed(2)).toString().replace('.',',');
-}
-
-function formatarData(data) {
-  if (!data) return '';
-  var p = data.split('-');
-  return p[2]+'/'+p[1]+'/'+p[0];
-}
-
-function mostrarToast(msg) {
-  var t = document.createElement('div');
-  t.className = 'toast';
-  t.textContent = msg;
-  document.body.appendChild(t);
-  setTimeout(function(){ t.remove(); }, 3000);
-}
-
-// ── Inicializar com histórico existente ──
-if (historico.length) {
-  dataAtiva = historico[historico.length-1].data;
-  renderizar();
-}
+if(historico.length){dataAtiva=historico[historico.length-1].data;renderizar();}
 </script>
 </body>
 </html>
