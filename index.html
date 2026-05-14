@@ -144,7 +144,7 @@ function go(file){
 }
 
 function api(b64,nome){
-  fetch('https://api.anthropic.com/v1/messages',{
+  fetch('https://noc-clinic.ernandes-sobreira.workers.dev',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
